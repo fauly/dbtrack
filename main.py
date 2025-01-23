@@ -60,7 +60,8 @@ def update_field():
     today = datetime.date.today().isoformat()
     with sqlite3.connect('mobile_cafe.db') as conn:
         cursor = conn.cursor()
-        cursor.execute(f"UPDATE daily_logs SET {field} = ? WHERE date = ?", (value, today))
+        query = "UPDATE daily_logs SET " + field + " = ? WHERE date = ?"
+        cursor.execute(query, (value, today))
         conn.commit()
     return jsonify({"success": True})
 
