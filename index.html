@@ -3,90 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mobile Cafe Dashboard</title>
+    <title>Dirty Boots Dashboard</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             margin: 20px;
             padding: 0;
+            background-color: #f9f9f9;
         }
         .container {
             max-width: 800px;
             margin: auto;
+            text-align: center;
         }
         h1 {
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 30px;
         }
-        .button {
-            display: inline-block;
-            margin: 10px 5px;
-            padding: 10px 20px;
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .grid-item {
             background-color: #007BFF;
             color: white;
+            padding: 20px;
+            border-radius: 8px;
             text-decoration: none;
-            border-radius: 5px;
             text-align: center;
+            font-size: 1.2em;
+            transition: background-color 0.3s;
         }
-        .button:hover {
+        .grid-item:hover {
             background-color: #0056b3;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        table, th, td {
-            border: 1px solid #ccc;
-        }
-        th, td {
-            padding: 10px;
-            text-align: left;
-        }
-        th {
-            background-color: #f4f4f4;
-        }
-        a {
-            text-decoration: none;
-            color: #007BFF;
-        }
-        a:hover {
-            text-decoration: underline;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Mobile Cafe Dashboard</h1>
-        <div class="buttons">
-            <a href="/daily-report" class="button">Daily Report</a>
-            <a href="/archived-reports" class="button">Archived Reports</a>
-            <a href="/add" class="button">Add New Log</a>
+        <div class="grid">
+            <a href="/daily-report" class="grid-item">Daily Report</a>
+            <a href="/archived-reports" class="grid-item">Archived Reports</a>
+            <a href="/inventory" class="grid-item">Inventory</a>
+            <a href="/tasks" class="grid-item">Tasks</a>
+            <a href="/settings" class="grid-item">Settings</a>
         </div>
-        <table>
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Date</th>
-                    <th>Task</th>
-                    <th>Value</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for log in logs %}
-                <tr>
-                    <td>{{ log[0] }}</td>
-                    <td>{{ log[1] }}</td>
-                    <td>{{ log[2] }}</td>
-                    <td>{{ log[3] }}</td>
-                    <td>
-                        <a href="/delete/{{ log[0] }}">Delete</a>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
     </div>
 </body>
 </html>
