@@ -1,0 +1,89 @@
+from flask import Flask, render_template, request, jsonify
+from flask_sqlalchemy import SQLAlchemy
+from datetime import datetime, date
+import os
+
+app = Flask(__name__)
+
+# Configure SQLite database
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{os.path.join(BASE_DIR, 'database', 'mobile_cafe.db')}"
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+db = SQLAlchemy(app)
+
+# Database Model
+class DailyLog(db.Model):
+    __tablename__ = "daily_logs"
+
+    id = db.Column(db.Integer, primary_key=True)
+    date = db.Column(db.Date, default=date.today, nullable=False)
+    fridge_temp_8 = db.Column(db.String(10))
+    fridge_temp_9 = db.Column(db.String(10))
+    fridge_temp_10 = db.Column(db.String(10))
+    fridge_temp_11 = db.Column(db.String(10))
+    fridge_temp_12 = db.Column(db.String(10))
+    fridge_temp_1 = db.Column(db.String(10))
+    fridge_temp_2 = db.Column(db.String(10))
+    fridge_temp_3 = db.Column(db.String(10))
+    fridge_temp_4 = db.Column(db.String(10))
+    freezer_temp_8 = db.Column(db.String(10))
+    freezer_temp_9 = db.Column(db.String(10))
+    freezer_temp_10 = db.Column(db.String(10))
+    freezer_temp_11 = db.Column(db.String(10))
+    freezer_temp_12 = db.Column(db.String(10))
+    freezer_temp_1 = db.Column(db.String(10))
+    freezer_temp_2 = db.Column(db.String(10))
+    freezer_temp_3 = db.Column(db.String(10))
+    freezer_temp_4 = db.Column(db.String(10))
+    opening_clean = db.Column(db.Boolean, default=False)
+    midday_clean = db.Column(db.Boolean, default=False)
+    end_of_day_clean = db.Column(db.Boolean, default=False)
+    grey_water = db.Column(db.Boolean, default=False)
+    bin_emptied = db.Column(db.Boolean, default=False)
+
+
+# Routes
+@app.route("/")
+def index():
+    return render_template("index.html")
+
+@app.route("/daily-report")
+def daily_report():
+    return render_template("daily_report.html")
+
+@app.route("/api/daily-report", methods=["GET"])
+def get_daily_report():
+    today = date.today()
+    log = DailyLog.query.filter_by(date=today).first()
+
+    if not log:
+        log = DailyLog(date=today)
+        db.session.add(log)
+        db.session.commit()
+
+    return jsonify({col.name: getattr(log, col.name) for col in log.__table__.columns})
+
+@app.route("/api/update", methods=["POST"])
+def update_field():
+    data = request.json
+    field, value = data["field"], data["value"]
+    today = date.today()
+
+    log = DailyLog.query.filter_by(date=today).first()
+    if not log:
+        return jsonify({"success": False, "error": "No log found"}), 404
+
+    if hasattr(log, field):
+        setattr(log, field, value)
+        db.session.commit()
+        return jsonify({"success": True})
+    else:
+        return jsonify({"success": False, "error": f"Invalid field: {field}"}), 400
+
+
+# Initialize Database
+with app.app_context():
+    db.create_all()
+
+if __name__ == "__main__":
+    app.run(debug=True)
