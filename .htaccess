@@ -2,7 +2,7 @@
 PassengerAppRoot "/home/h80bi8l0u1q9/public_html/staff.dirtyboots.cafe"
 PassengerBaseURI "/"
 PassengerPython "/home/h80bi8l0u1q9/virtualenv/public_html/staff.dirtyboots.cafe/3.11/bin/python"
-PassengerAppLogFile "/home/h80bi8l0u1q9/logs/passenger.log"
+PassengerAppLogFile "/home/h80bi8l0u1q9/public_html/staff.dirtyboots.cafe/passenger.log"
 # DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION END
 # DO NOT REMOVE OR MODIFY. CLOUDLINUX ENV VARS CONFIGURATION BEGIN
 <IfModule Litespeed>
