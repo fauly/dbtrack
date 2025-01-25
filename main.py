@@ -49,7 +49,7 @@ def index():
 
 @app.route("/daily-report")
 def daily_report():
-    return render_template("daily_report.html")
+    return render_template("daily-report.html")
 
 @app.route("/api/daily-report", methods=["GET"])
 def get_daily_report():
