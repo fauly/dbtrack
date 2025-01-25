@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Archived Reports</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 0;
+            background-color: #f9f9f9;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .search-section {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .search-section input[type="date"] {
+            padding: 5px;
+            font-size: 16px;
+        }
+        .report-section {
+            margin-top: 20px;
+        }
+        .report-section h2 {
+            margin-bottom: 10px;
+        }
+        .data {
+            margin-bottom: 10px;
+        }
+        .data span {
+            font-weight: bold;
+        }
+    </style>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const searchInput = document.getElementById("date-input");
+            const reportContainer = document.getElementById("report-container");
+
+            document.getElementById("fetch-report").addEventListener("click", async () => {
+                const date = searchInput.value;
+                if (!date) {
+                    alert("Please select a date.");
+                    return;
+                }
+
+                try {
+                    const response = await fetch(`/api/archived-report?date=${date}`);
+                    const data = await response.json();
+
+                    if (data.error) {
+                        reportContainer.innerHTML = `<p>${data.error}</p>`;
+                    } else {
+                        reportContainer.innerHTML = `
+                            <h2>Report for ${data.date}</h2>
+                            <div class="data">Fridge Temperature 8 AM: <span>${data.fridge_temp_8 || "N/A"}</span></div>
+                            <div class="data">Freezer Temperature 8 AM: <span>${data.freezer_temp_8 || "N/A"}</span></div>
+                            <!-- Add more fields as needed -->
+                            <div class="data">Opening Clean: <span>${data.opening_clean ? "Completed" : "Not Completed"}</span></div>
+                            <div class="data">Grey Water Emptied: <span>${data.grey_water ? "Yes" : "No"}</span></div>
+                        `;
+                    }
+                } catch (error) {
+                    console.error("Error fetching archived report:", error);
+                    reportContainer.innerHTML = `<p>An error occurred while fetching the report.</p>`;
+                }
+            });
+        });
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>Archived Reports</h1>
+        <div class="search-section">
+            <label for="date-input">Select a date:</label>
+            <input type="date" id="date-input">
+            <button id="fetch-report">Fetch Report</button>
+        </div>
+        <div id="report-container" class="report-section">
+            <p>No report selected. Please choose a date.</p>
+        </div>
+    </div>
+</body>
+</html>

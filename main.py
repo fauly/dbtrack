@@ -51,6 +51,27 @@ def index():
 def daily_report():
     return render_template("daily-report.html")
 
+@app.route("/archived-reports")
+def archived_reports():
+    return render_template("archived-reports.html")
+
+
+@app.route("/api/archived-report", methods=["GET"])
+def get_archived_report():
+    # Get the date from the query string
+    report_date = request.args.get("date")
+    if not report_date:
+        return jsonify({"error": "No date provided."}), 400
+
+    # Query the database for the specific date
+    log = DailyLog.query.filter_by(date=report_date).first()
+    if not log:
+        return jsonify({"error": f"No report found for {report_date}."}), 404
+
+    # Return the log as a JSON response
+    return jsonify({col.name: getattr(log, col.name) for col in log.__table__.columns})
+
+
 @app.route("/api/daily-report", methods=["GET"])
 def get_daily_report():
     today = date.today()
