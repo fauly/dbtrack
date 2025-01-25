@@ -17,6 +17,7 @@ class DailyLog(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     date = db.Column(db.Date, default=date.today, nullable=False)
+    last_edited = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
     fridge_temp_8 = db.Column(db.String(10))
     fridge_temp_9 = db.Column(db.String(10))
     fridge_temp_10 = db.Column(db.String(10))
