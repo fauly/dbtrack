@@ -1,3 +1,5 @@
+console.log('Daily.js loaded')
+
 document.addEventListener("DOMContentLoaded", async () => {
     try {
         const response = await fetch("/api/daily-report");
