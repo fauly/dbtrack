@@ -5,7 +5,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const today = formatDate(new Date());
     dateInput.value = today;
 
-    // Fetch and populate the report for a specific date
     async function fetchReport(date) {
         try {
             const response = await fetch(`/api/daily-report?date=${date}`);
@@ -26,7 +25,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // Populate the form dynamically
     function populateForm(data) {
         reportContainer.innerHTML = "";
 
@@ -51,33 +49,35 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // Additional Checkboxes
         const checkboxSection = document.createElement("div");
-        checkboxSection.innerHTML = `
-            <h3>Additional Checks</h3>
-            ${renderCheckbox("Opening Clean", "opening_clean", data.opening_clean)}
-            ${renderCheckbox("Midday Clean", "midday_clean", data.midday_clean)}
-            ${renderCheckbox("End of Day Clean", "end_of_day_clean", data.end_of_day_clean)}
-            ${renderCheckbox("Grey Water Emptied", "grey_water", data.grey_water)}
-            ${renderCheckbox("Bin Emptied", "bin_emptied", data.bin_emptied)}
-        `;
+        checkboxSection.innerHTML = `<h3>Additional Checks</h3>`;
+        const checks = [
+            { field: "opening_clean", label: "Opening Clean" },
+            { field: "midday_clean", label: "Midday Clean" },
+            { field: "end_of_day_clean", label: "End of Day Clean" },
+            { field: "grey_water", label: "Grey Water Emptied" },
+            { field: "bin_emptied", label: "Bin Emptied" },
+        ];
+
+        checks.forEach(({ field, label }) => {
+            const isChecked = !!data[field];
+            const completionTime = isChecked ? new Date(data[field]).toLocaleTimeString() : "";
+            const checkboxId = `checkbox-${field}`;
+
+            const checkboxHTML = `
+                <div>
+                    <label for="${checkboxId}" class="${isChecked ? "strike" : ""}">
+                        <input type="checkbox" id="${checkboxId}" data-field="${field}" ${isChecked ? "checked" : ""}>
+                        ${label}
+                    </label>
+                    ${isChecked ? `<span class="completion-time">(${completionTime})</span>` : ""}
+                </div>
+            `;
+            checkboxSection.innerHTML += checkboxHTML;
+        });
+
         reportContainer.appendChild(checkboxSection);
     }
 
-    // Render individual checkbox with timestamp
-    function renderCheckbox(label, field, timestamp) {
-        const checked = Boolean(timestamp);
-        const formattedTime = timestamp ? new Date(timestamp).toLocaleString() : "";
-
-        return `
-            <div>
-                <label>
-                    <input type="checkbox" data-field="${field}" ${checked ? "checked" : ""}>
-                    ${label} ${checked ? `<span class="completion-time">${formattedTime}</span>` : ""}
-                </label>
-            </div>
-        `;
-    }
-
-    // Update field in the database
     async function updateField(field, value, date) {
         try {
             const response = await fetch("/api/update", {
@@ -88,7 +88,24 @@ document.addEventListener("DOMContentLoaded", () => {
             const result = await response.json();
             if (result.success) {
                 showNotification("Data saved successfully!");
-                lastEditedElement.textContent = `Last edited: ${new Date(result.last_edited).toLocaleString()}`;
+
+                // If the field is a checkbox, update its UI dynamically
+                if (["opening_clean", "midday_clean", "end_of_day_clean", "grey_water", "bin_emptied"].includes(field)) {
+                    const checkboxLabel = document.querySelector(`label[for="checkbox-${field}"]`);
+                    const completionTime = value ? new Date().toLocaleTimeString() : "";
+                    if (checkboxLabel) {
+                        checkboxLabel.classList.toggle("strike", value);
+                        const completionSpan = checkboxLabel.nextElementSibling;
+                        if (completionSpan) {
+                            completionSpan.textContent = value ? `(${completionTime})` : "";
+                        } else if (value) {
+                            const timeSpan = document.createElement("span");
+                            timeSpan.className = "completion-time";
+                            timeSpan.textContent = `(${completionTime})`;
+                            checkboxLabel.after(timeSpan);
+                        }
+                    }
+                }
             } else {
                 console.error("Failed to update:", result.error);
             }
@@ -97,13 +114,11 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // Handle date change
     dateInput.addEventListener("change", () => {
         const selectedDate = dateInput.value;
         fetchReport(selectedDate);
     });
 
-    // Handle form changes
     reportContainer.addEventListener("change", (e) => {
         if (e.target.tagName === "INPUT") {
             const field = e.target.dataset.field;
@@ -114,11 +129,10 @@ document.addEventListener("DOMContentLoaded", () => {
             if (field === "temperatures") {
                 updateField(field, { [key]: value }, selectedDate);
             } else {
-                updateField(field, value ? new Date().toISOString() : null, selectedDate);
+                updateField(field, value, selectedDate);
             }
         }
     });
 
-    // Fetch today's report on load
     fetchReport(today);
 });
