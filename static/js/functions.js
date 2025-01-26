@@ -6,8 +6,13 @@ function formatDate(dateString) {
     return `${year}-${month}-${day}`;
 }
 
-async function updateField(field, value, date = new Date().toISOString()) {
+async function updateField(field, value, date = new Date().toISOString().split("T")[0]) {
     const normalizedDate = formatDate(date); // Normalize the date
+    if (field === "date") {
+        console.error("Date should not be updated dynamically.");
+        return;
+    }
+
     try {
         const response = await fetch("/api/update", {
             method: "POST",
@@ -24,6 +29,7 @@ async function updateField(field, value, date = new Date().toISOString()) {
         console.error("Error updating field:", error);
     }
 }
+
 
 function loadFormData(data) {
     if (!data) return;

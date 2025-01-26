@@ -10,23 +10,24 @@ document.addEventListener("DOMContentLoaded", () => {
         try {
             const response = await fetch(`/api/daily-report?date=${date}`);
             const data = await response.json();
-
+    
             if (data.error) {
                 reportDateElement.textContent = `No report found for ${date}`;
                 reportContainer.innerHTML = `<p>${data.error}</p>`;
                 return;
             }
-
+    
             reportDateElement.textContent = `Report for ${date}`;
             lastEditedElement.textContent = `Last edited: ${
                 data.last_edited ? new Date(data.last_edited).toLocaleString() : "Not yet edited"
             }`;
-
+    
             populateForm(data);
         } catch (error) {
             console.error("Error fetching report:", error);
         }
     }
+    
 
     function populateForm(data) {
         reportContainer.style.display = "block";
