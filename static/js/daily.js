@@ -2,8 +2,16 @@ document.addEventListener("DOMContentLoaded", () => {
     const dateInput = document.getElementById("date-input");
     const reportContainer = document.getElementById("report-form");
     const lastEditedElement = document.getElementById("last-edited");
+    const prevDateButton = document.getElementById("prev-date");
+    const nextDateButton = document.getElementById("next-date");
     const today = formatDate(new Date());
     dateInput.value = today;
+
+    function getAdjacentDate(currentDate, days) {
+        const date = new Date(currentDate);
+        date.setDate(date.getDate() + days);
+        return formatDate(date);
+    }    
 
     async function fetchReport(date) {
         try {
@@ -134,5 +142,19 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
+    prevDateButton.addEventListener("click", () => {
+        const currentDate = dateInput.value;
+        const newDate = getAdjacentDate(currentDate, -1);
+        dateInput.value = newDate;
+        fetchReport(newDate);
+    });
+    
+    nextDateButton.addEventListener("click", () => {
+        const currentDate = dateInput.value;
+        const newDate = getAdjacentDate(currentDate, 1);
+        dateInput.value = newDate;
+        fetchReport(newDate);
+    });
+    
     fetchReport(today);
 });
