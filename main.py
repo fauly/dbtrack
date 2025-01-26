@@ -60,16 +60,22 @@ def update_field():
     except ValueError:
         return jsonify({"success": False, "error": "Invalid date format. Please use YYYY-MM-DD."}), 400
 
+    field, value = data["field"], data["value"]
     log = DailyLog.query.filter_by(date=report_date).first()
     if not log:
         return jsonify({"success": False, "error": f"No log found for {report_date}."}), 404
 
-    field, value = data["field"], data["value"]
-
+    # Handle temperature updates
     if field == "temperatures" and isinstance(value, dict):
         existing_temperatures = log.temperatures or {}
         existing_temperatures.update(value)
         log.temperatures = existing_temperatures
+
+    # Handle checkboxes storing timestamps
+    elif field in ["opening_clean", "midday_clean", "end_of_day_clean", "grey_water", "bin_emptied"]:
+        log.__setattr__(field, datetime.utcnow() if value else None)
+
+    # Handle other fields
     elif hasattr(log, field):
         setattr(log, field, value)
     else:

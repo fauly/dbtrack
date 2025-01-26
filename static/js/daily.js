@@ -5,6 +5,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const today = formatDate(new Date());
     dateInput.value = today;
 
+    // Fetch and populate the report for a specific date
     async function fetchReport(date) {
         try {
             const response = await fetch(`/api/daily-report?date=${date}`);
@@ -25,6 +26,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    // Populate the form dynamically
     function populateForm(data) {
         reportContainer.innerHTML = "";
 
@@ -51,39 +53,31 @@ document.addEventListener("DOMContentLoaded", () => {
         const checkboxSection = document.createElement("div");
         checkboxSection.innerHTML = `
             <h3>Additional Checks</h3>
-            <label>
-                <input type="checkbox" data-field="opening_clean" ${
-                    data.opening_clean ? "checked" : ""
-                }> Opening Clean
-            </label>
-            <br>
-            <label>
-                <input type="checkbox" data-field="midday_clean" ${
-                    data.midday_clean ? "checked" : ""
-                }> Midday Clean
-            </label>
-            <br>
-            <label>
-                <input type="checkbox" data-field="end_of_day_clean" ${
-                    data.end_of_day_clean ? "checked" : ""
-                }> End of Day Clean
-            </label>
-            <br>
-            <label>
-                <input type="checkbox" data-field="grey_water" ${
-                    data.grey_water ? "checked" : ""
-                }> Grey Water Emptied
-            </label>
-            <br>
-            <label>
-                <input type="checkbox" data-field="bin_emptied" ${
-                    data.bin_emptied ? "checked" : ""
-                }> Bin Emptied
-            </label>
+            ${renderCheckbox("Opening Clean", "opening_clean", data.opening_clean)}
+            ${renderCheckbox("Midday Clean", "midday_clean", data.midday_clean)}
+            ${renderCheckbox("End of Day Clean", "end_of_day_clean", data.end_of_day_clean)}
+            ${renderCheckbox("Grey Water Emptied", "grey_water", data.grey_water)}
+            ${renderCheckbox("Bin Emptied", "bin_emptied", data.bin_emptied)}
         `;
         reportContainer.appendChild(checkboxSection);
     }
 
+    // Render individual checkbox with timestamp
+    function renderCheckbox(label, field, timestamp) {
+        const checked = Boolean(timestamp);
+        const formattedTime = timestamp ? new Date(timestamp).toLocaleString() : "";
+
+        return `
+            <div>
+                <label>
+                    <input type="checkbox" data-field="${field}" ${checked ? "checked" : ""}>
+                    ${label} ${checked ? `<span class="completion-time">${formattedTime}</span>` : ""}
+                </label>
+            </div>
+        `;
+    }
+
+    // Update field in the database
     async function updateField(field, value, date) {
         try {
             const response = await fetch("/api/update", {
@@ -94,6 +88,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const result = await response.json();
             if (result.success) {
                 showNotification("Data saved successfully!");
+                lastEditedElement.textContent = `Last edited: ${new Date(result.last_edited).toLocaleString()}`;
             } else {
                 console.error("Failed to update:", result.error);
             }
@@ -102,11 +97,13 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    // Handle date change
     dateInput.addEventListener("change", () => {
         const selectedDate = dateInput.value;
         fetchReport(selectedDate);
     });
 
+    // Handle form changes
     reportContainer.addEventListener("change", (e) => {
         if (e.target.tagName === "INPUT") {
             const field = e.target.dataset.field;
@@ -117,10 +114,11 @@ document.addEventListener("DOMContentLoaded", () => {
             if (field === "temperatures") {
                 updateField(field, { [key]: value }, selectedDate);
             } else {
-                updateField(field, value, selectedDate);
+                updateField(field, value ? new Date().toISOString() : null, selectedDate);
             }
         }
     });
 
+    // Fetch today's report on load
     fetchReport(today);
 });
