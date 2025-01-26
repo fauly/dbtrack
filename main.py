@@ -19,11 +19,11 @@ class DailyLog(db.Model):
     date = db.Column(db.Date, default=date.today, nullable=False)
     last_edited = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
     temperatures = db.Column(db.JSON, default={})  # Store fridge/freezer data
-    opening_clean = db.Column(db.Boolean, default=False)
-    midday_clean = db.Column(db.Boolean, default=False)
-    end_of_day_clean = db.Column(db.Boolean, default=False)
-    grey_water = db.Column(db.Boolean, default=False)
-    bin_emptied = db.Column(db.Boolean, default=False)
+    opening_clean = db.Column(db.DateTime, nullable=True)  # Store timestamp when checked
+    midday_clean = db.Column(db.DateTime, nullable=True)  # Store timestamp when checked
+    end_of_day_clean = db.Column(db.DateTime, nullable=True)  # Store timestamp when checked
+    grey_water = db.Column(db.DateTime, nullable=True)  # Store timestamp when checked
+    bin_emptied = db.Column(db.DateTime, nullable=True)  # Store timestamp when checked
 
 # Routes
 @app.route("/")
