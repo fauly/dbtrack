@@ -46,7 +46,10 @@ def get_daily_report():
         db.session.add(log)
         db.session.commit()
 
-    return jsonify({col.name: getattr(log, col.name) for col in log.__table__.columns})
+    data = {col.name: getattr(log, col.name) for col in log.__table__.columns}
+    # Ensure temperatures is always a dictionary
+    data["temperatures"] = data["temperatures"] or {}
+    return jsonify(data)
 
 @app.route("/api/update", methods=["POST"])
 def update_field():
