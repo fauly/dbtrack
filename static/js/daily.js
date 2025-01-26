@@ -28,6 +28,7 @@ document.addEventListener("DOMContentLoaded", () => {
     function populateForm(data) {
         reportContainer.innerHTML = "";
 
+        // Temperature Table
         const tempTable = document.createElement("table");
         tempTable.innerHTML = `<tr><th>Time</th><th>Fridge Temperature</th><th>Freezer Temperature</th></tr>`;
 
@@ -45,9 +46,45 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 
         reportContainer.appendChild(tempTable);
+
+        // Additional Checkboxes
+        const checkboxSection = document.createElement("div");
+        checkboxSection.innerHTML = `
+            <h3>Additional Checks</h3>
+            <label>
+                <input type="checkbox" data-field="opening_clean" ${
+                    data.opening_clean ? "checked" : ""
+                }> Opening Clean
+            </label>
+            <br>
+            <label>
+                <input type="checkbox" data-field="midday_clean" ${
+                    data.midday_clean ? "checked" : ""
+                }> Midday Clean
+            </label>
+            <br>
+            <label>
+                <input type="checkbox" data-field="end_of_day_clean" ${
+                    data.end_of_day_clean ? "checked" : ""
+                }> End of Day Clean
+            </label>
+            <br>
+            <label>
+                <input type="checkbox" data-field="grey_water" ${
+                    data.grey_water ? "checked" : ""
+                }> Grey Water Emptied
+            </label>
+            <br>
+            <label>
+                <input type="checkbox" data-field="bin_emptied" ${
+                    data.bin_emptied ? "checked" : ""
+                }> Bin Emptied
+            </label>
+        `;
+        reportContainer.appendChild(checkboxSection);
     }
 
-    async function updateField(field, value, date = today) {
+    async function updateField(field, value, date) {
         try {
             const response = await fetch("/api/update", {
                 method: "POST",
@@ -66,17 +103,24 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     dateInput.addEventListener("change", () => {
-        fetchReport(dateInput.value);
+        const selectedDate = dateInput.value;
+        fetchReport(selectedDate);
     });
-
-    fetchReport(today);
 
     reportContainer.addEventListener("change", (e) => {
         if (e.target.tagName === "INPUT") {
             const field = e.target.dataset.field;
             const key = e.target.dataset.key;
-            const value = e.target.value;
-            updateField(field, { [key]: value });
+            const value = e.target.type === "checkbox" ? e.target.checked : e.target.value;
+            const selectedDate = dateInput.value;
+
+            if (field === "temperatures") {
+                updateField(field, { [key]: value }, selectedDate);
+            } else {
+                updateField(field, value, selectedDate);
+            }
         }
     });
+
+    fetchReport(today);
 });
