@@ -54,6 +54,7 @@ def update_field():
     if not data or "field" not in data or "value" not in data:
         return jsonify({"success": False, "error": "Missing required fields 'field' and 'value'."}), 400
 
+    # Use the provided date or default to today
     report_date_str = data.get("date", date.today().isoformat())
     try:
         report_date = datetime.strptime(report_date_str, "%Y-%m-%d").date()
@@ -67,8 +68,10 @@ def update_field():
 
     # Handle temperature updates
     if field == "temperatures" and isinstance(value, dict):
+        # Merge new temperature data with existing data
         existing_temperatures = log.temperatures or {}
-        existing_temperatures.update(value)
+        for key, val in value.items():
+            existing_temperatures[key] = val
         log.temperatures = existing_temperatures
 
     # Handle checkboxes storing timestamps
