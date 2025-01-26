@@ -18,7 +18,7 @@ class DailyLog(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     date = db.Column(db.Date, default=date.today, nullable=False)
     last_edited = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
-    temperatures = db.Column(db.JSON, default={})  # JSON column for temperatures
+    temperatures = db.Column(db.JSON, default={})  # Store fridge/freezer data
     opening_clean = db.Column(db.Boolean, default=False)
     midday_clean = db.Column(db.Boolean, default=False)
     end_of_day_clean = db.Column(db.Boolean, default=False)
@@ -33,22 +33,19 @@ def index():
 @app.route("/api/daily-report", methods=["GET"])
 def get_daily_report():
     report_date_str = request.args.get("date", date.today().isoformat())
-    
     try:
         report_date = datetime.strptime(report_date_str, "%Y-%m-%d").date()
     except ValueError:
         return jsonify({"error": "Invalid date format. Please use YYYY-MM-DD."}), 400
 
     log = DailyLog.query.filter_by(date=report_date).first()
-
     if not log:
         log = DailyLog(date=report_date, temperatures={})
         db.session.add(log)
         db.session.commit()
 
     data = {col.name: getattr(log, col.name) for col in log.__table__.columns}
-    # Ensure temperatures is always a dictionary
-    data["temperatures"] = data["temperatures"] or {}
+    data["temperatures"] = data["temperatures"] or {}  # Ensure temperatures are always a dictionary
     return jsonify(data)
 
 @app.route("/api/update", methods=["POST"])
@@ -63,14 +60,11 @@ def update_field():
     except ValueError:
         return jsonify({"success": False, "error": "Invalid date format. Please use YYYY-MM-DD."}), 400
 
-    field, value = data["field"], data["value"]
-
-    if field == "date":
-        return jsonify({"success": False, "error": "Date cannot be updated dynamically."}), 400
-
     log = DailyLog.query.filter_by(date=report_date).first()
     if not log:
         return jsonify({"success": False, "error": f"No log found for {report_date}."}), 404
+
+    field, value = data["field"], data["value"]
 
     if field == "temperatures" and isinstance(value, dict):
         existing_temperatures = log.temperatures or {}

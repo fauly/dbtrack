@@ -5,40 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Daily Report</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            padding: 0;
-            background-color: #f9f9f9;
-        }
-        .container {
-            max-width: 800px;
-            margin: auto;
-        }
-        h1 {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        .search-section {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        .search-section input[type="date"] {
-            padding: 5px;
-            font-size: 16px;
-        }
-        .strike {
-            text-decoration: line-through;
-            color: red;
-        }
-        .completion-time {
-            color: green;
-            margin-left: 10px;
-            font-style: italic;
-        }
+        /* Add your styles here */
     </style>
     <script src="/static/js/functions.js"></script>
-    <script src="/static/js/daily.js"></script>    
+    <script src="/static/js/daily.js"></script>
 </head>
 <body>
     <div class="container">
@@ -46,15 +16,12 @@
         <div class="search-section">
             <label for="date-input">Select a date:</label>
             <input type="date" id="date-input">
-            <button id="fetch-report">Fetch Report</button>
         </div>
         <h2 id="report-date">No report selected</h2>
-        <div id="report-form" style="display: none;">
-            <!-- The report form will be dynamically populated -->
+        <div id="report-form">
+            <!-- Form dynamically generated -->
         </div>
-        <div id="last-edited" style="text-align: center; margin-top: 20px; font-style: italic; color: gray;">
-            Last edited: Not yet edited
-        </div>
+        <div id="last-edited" style="text-align: center;">Last edited: Not yet edited</div>
     </div>
 </body>
 </html>
