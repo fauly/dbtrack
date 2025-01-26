@@ -41,12 +41,15 @@ async function updateField(field, value) {
                 body: JSON.stringify({ field, value }),
             });
             const result = await response.json();
-            if (!result.success) console.error("Failed to save data.");
+            if (!result.success) {
+                console.error("Failed to save data:", result.error);
+            }
         } catch (error) {
             console.error("Error updating field:", error);
         }
     }, 300);
 }
+
 
 function loadFormData(data) {
     document.querySelectorAll("input[type='text']").forEach((input) => {
