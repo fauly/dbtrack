@@ -25,6 +25,38 @@ async function updateField(field, value, date = new Date().toISOString()) {
     }
 }
 
+function loadFormData(data) {
+    if (!data) return;
+
+    // Load text inputs
+    document.querySelectorAll("input[type='text']").forEach((input) => {
+        const key = input.dataset.field;
+        if (key.startsWith("fridge_") || key.startsWith("freezer_")) {
+            // Handle temperature fields
+            const tempKey = key.split("_").join("_");
+            if (data.temperatures && tempKey in data.temperatures) {
+                input.value = data.temperatures[tempKey];
+            }
+        } else if (data[key]) {
+            input.value = data[key];
+        }
+    });
+
+    // Load checkboxes
+    document.querySelectorAll("input[type='checkbox']").forEach((checkbox) => {
+        const key = checkbox.dataset.field;
+        if (data[key] !== undefined) {
+            checkbox.checked = data[key] === true || data[key] === "true";
+        }
+    });
+
+    // Update last edited display
+    const lastEditedElement = document.getElementById("last-edited");
+    if (lastEditedElement && data.last_edited) {
+        lastEditedElement.textContent = `Last edited: ${new Date(data.last_edited).toLocaleString()}`;
+    }
+}
+
 
 function createTemperatureTable(data) {
     const timeSlots = ["8", "9", "10", "11", "12", "1", "2", "3", "4"];

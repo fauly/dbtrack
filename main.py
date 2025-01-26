@@ -54,8 +54,8 @@ def update_field():
     if not data or "field" not in data or "value" not in data:
         return jsonify({"success": False, "error": "Missing required fields 'field' and 'value'."}), 400
 
+    # Normalize the date
     report_date_str = data.get("date", date.today().isoformat())
-    
     try:
         report_date = datetime.strptime(report_date_str, "%Y-%m-%d").date()
     except ValueError:
@@ -68,7 +68,10 @@ def update_field():
         return jsonify({"success": False, "error": f"No log found for {report_date}."}), 404
 
     if field == "temperatures" and isinstance(value, dict):
-        log.temperatures.update(value)
+        # Merge the incoming temperatures with existing ones
+        existing_temperatures = log.temperatures or {}
+        existing_temperatures.update(value)
+        log.temperatures = existing_temperatures
     elif hasattr(log, field):
         setattr(log, field, value)
     else:
