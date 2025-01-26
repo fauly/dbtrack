@@ -1,18 +1,30 @@
-async function updateField(field, value, date) {
+function formatDate(dateString) {
+    const date = new Date(dateString);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+async function updateField(field, value, date = new Date().toISOString()) {
+    const normalizedDate = formatDate(date); // Normalize the date
     try {
         const response = await fetch("/api/update", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ field, value, date }),
+            body: JSON.stringify({ field, value, date: normalizedDate }),
         });
         const result = await response.json();
-        if (!result.success) {
+        if (result.success) {
+            console.log(`Successfully updated ${field}`);
+        } else {
             console.error("Failed to update:", result.error);
         }
     } catch (error) {
         console.error("Error updating field:", error);
     }
 }
+
 
 function createTemperatureTable(data) {
     const timeSlots = ["8", "9", "10", "11", "12", "1", "2", "3", "4"];
