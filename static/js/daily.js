@@ -2,6 +2,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const dateInput = document.getElementById("date-input");
     const reportContainer = document.getElementById("report-container");
     const lastEditedElement = document.getElementById("last-edited");
+    const today = new Date().toISOString().split("T")[0];
+    dateInput.value = today;
 
     async function fetchReport(date) {
         try {
@@ -34,6 +36,5 @@ document.addEventListener("DOMContentLoaded", () => {
         fetchReport(selectedDate);
     });
 
-    // Load today's report by default
-    fetchReport(new Date().toISOString().split("T")[0]);
+    fetchReport(today);
 });
