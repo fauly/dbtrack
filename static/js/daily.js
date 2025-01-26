@@ -35,7 +35,7 @@ document.addEventListener("DOMContentLoaded", () => {
         ["8", "9", "10", "11", "12", "1", "2", "3", "4"].forEach((hour) => {
             const row = document.createElement("tr");
             const fridgeTemp = data.temperatures[`fridge_${hour}`] || "";
-            const freezerTemp = data.temperatures[`freezer_${hour}`] || "";
+            const freezerTemp = data.temperatures[`freezer_${hour}`] || "";            
 
             row.innerHTML = `
                 <td>${hour}:00</td>

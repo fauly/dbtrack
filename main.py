@@ -45,7 +45,7 @@ def get_daily_report():
         db.session.commit()
 
     data = {col.name: getattr(log, col.name) for col in log.__table__.columns}
-    data["temperatures"] = data["temperatures"] or {}  # Ensure temperatures are always a dictionary
+    data["temperatures"] = log.temperatures or {} # Ensure temperatures are always a dictionary
     return jsonify(data)
 
 @app.route("/api/update", methods=["POST"])
@@ -68,11 +68,8 @@ def update_field():
 
     # Handle temperature updates
     if field == "temperatures" and isinstance(value, dict):
-        # Merge new temperature data with existing data
-        existing_temperatures = log.temperatures or {}
-        for key, val in value.items():
-            existing_temperatures[key] = val
-        log.temperatures = existing_temperatures
+        log.temperatures = {**(log.temperatures or {}), **value}
+
 
     # Handle checkboxes storing timestamps
     elif field in ["opening_clean", "midday_clean", "end_of_day_clean", "grey_water", "bin_emptied"]:
