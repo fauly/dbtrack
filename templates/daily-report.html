@@ -25,19 +25,6 @@
         .section h2 {
             margin-bottom: 10px;
         }
-        .log {
-            margin-bottom: 10px;
-        }
-        .checkbox {
-            margin-bottom: 10px;
-        }
-        label {
-            margin-left: 8px;
-        }
-        .strike {
-            text-decoration: line-through;
-            color: red;
-        }
         table {
             width: 100%;
             border-collapse: collapse;
@@ -51,6 +38,15 @@
         }
         th {
             background-color: #f4f4f4;
+        }
+        .strike {
+            text-decoration: line-through;
+            color: red;
+        }
+        .completion-time {
+            color: green;
+            margin-left: 10px;
+            font-style: italic;
         }
     </style>
     <script src="/static/js/daily.js"></script>
@@ -85,15 +81,15 @@
 
         <div class="section">
             <h2>Cleaning Checks</h2>
-            <div class="checkbox">
+            <div>
                 <input type="checkbox" data-field="opening_clean" id="opening-clean">
                 <label for="opening-clean">Opening Clean</label>
             </div>
-            <div class="checkbox">
+            <div>
                 <input type="checkbox" data-field="midday_clean" id="midday-clean">
                 <label for="midday-clean">Midday Clean</label>
             </div>
-            <div class="checkbox">
+            <div>
                 <input type="checkbox" data-field="end_of_day_clean" id="end-of-day-clean">
                 <label for="end-of-day-clean">End of Day Clean</label>
             </div>
@@ -101,16 +97,15 @@
 
         <div class="section">
             <h2>Additional Checks</h2>
-            <div class="checkbox">
+            <div>
                 <input type="checkbox" data-field="grey_water" id="grey-water">
                 <label for="grey-water">Grey Water Emptied</label>
             </div>
-            <div class="checkbox">
+            <div>
                 <input type="checkbox" data-field="bin_emptied" id="bin-emptied">
                 <label for="bin-emptied">Bin Emptied</label>
             </div>
         </div>
-
     </div>
 </body>
 </html>
