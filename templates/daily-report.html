@@ -56,15 +56,5 @@
             Last edited: Not yet edited
         </div>
     </div>
-    <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            const dateInput = document.getElementById("date-input");
-            const today = new Date().toISOString().split("T")[0];
-            dateInput.value = today;
-
-            // Automatically fetch today's report when the page loads
-            fetchReport(today);
-        });
-    </script>
 </body>
 </html>
