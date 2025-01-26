@@ -66,7 +66,7 @@ def update_field():
     field, value = data["field"], data["value"]
 
     if field == "date":
-        return jsonify({"success": False, "error": "Cannot update the date field."}), 400
+        return jsonify({"success": False, "error": "Date cannot be updated dynamically."}), 400
 
     log = DailyLog.query.filter_by(date=report_date).first()
     if not log:
