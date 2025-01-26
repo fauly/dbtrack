@@ -32,7 +32,13 @@ def index():
 
 @app.route("/api/daily-report", methods=["GET"])
 def get_daily_report():
-    report_date = request.args.get("date", date.today().isoformat())
+    report_date_str = request.args.get("date", date.today().isoformat())
+    
+    try:
+        report_date = datetime.strptime(report_date_str, "%Y-%m-%d").date()
+    except ValueError:
+        return jsonify({"error": "Invalid date format. Please use YYYY-MM-DD."}), 400
+
     log = DailyLog.query.filter_by(date=report_date).first()
 
     if not log:
@@ -48,7 +54,13 @@ def update_field():
     if not data or "field" not in data or "value" not in data:
         return jsonify({"success": False, "error": "Missing required fields 'field' and 'value'."}), 400
 
-    report_date = data.get("date", date.today().isoformat())
+    report_date_str = data.get("date", date.today().isoformat())
+    
+    try:
+        report_date = datetime.strptime(report_date_str, "%Y-%m-%d").date()
+    except ValueError:
+        return jsonify({"success": False, "error": "Invalid date format. Please use YYYY-MM-DD."}), 400
+
     field, value = data["field"], data["value"]
 
     log = DailyLog.query.filter_by(date=report_date).first()
@@ -56,7 +68,7 @@ def update_field():
         return jsonify({"success": False, "error": f"No log found for {report_date}."}), 404
 
     if field == "temperatures" and isinstance(value, dict):
-        log.temperatures.update(value)  # Merge new temperatures into existing ones
+        log.temperatures.update(value)
     elif hasattr(log, field):
         setattr(log, field, value)
     else:
