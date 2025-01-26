@@ -54,13 +54,8 @@ def update_field():
     if not data or "field" not in data or "value" not in data:
         return jsonify({"success": False, "error": "Missing required fields 'field' and 'value'."}), 400
 
-    # Normalize the date
-    report_date_str = data.get("date", date.today().isoformat())
-    try:
-        report_date = datetime.strptime(report_date_str, "%Y-%m-%d").date()
-    except ValueError:
-        return jsonify({"success": False, "error": "Invalid date format. Please use YYYY-MM-DD."}), 400
-
+    # Use the provided date or default to today
+    report_date = data.get("date", date.today().isoformat())
     field, value = data["field"], data["value"]
 
     log = DailyLog.query.filter_by(date=report_date).first()
@@ -68,7 +63,7 @@ def update_field():
         return jsonify({"success": False, "error": f"No log found for {report_date}."}), 404
 
     if field == "temperatures" and isinstance(value, dict):
-        # Merge the incoming temperatures with existing ones
+        # Merge new temperature data with the existing data
         existing_temperatures = log.temperatures or {}
         existing_temperatures.update(value)
         log.temperatures = existing_temperatures
