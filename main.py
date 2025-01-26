@@ -82,6 +82,11 @@ def get_archived_report():
 @app.route("/api/update", methods=["POST"])
 def update_field():
     data = request.json
+
+    # Validate required fields in the payload
+    if not data or "field" not in data or "value" not in data:
+        return jsonify({"success": False, "error": "Missing required fields 'field' and 'value'."}), 400
+
     field, value, report_date = data["field"], data["value"], data.get("date", date.today().isoformat())
 
     log = DailyLog.query.filter_by(date=report_date).first()
