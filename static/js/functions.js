@@ -1,44 +1,57 @@
-let timeout;
-
-// Update a field in the database
-async function updateField(field, value, date = new Date().toISOString().split("T")[0]) {
-    clearTimeout(timeout);
-    timeout = setTimeout(async () => {
-        try {
-            const response = await fetch("/api/update", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ field, value, date }),
-            });
-            const result = await response.json();
-            if (!result.success) {
-                console.error("Failed to save data:", result.error);
-            }
-        } catch (error) {
-            console.error("Error updating field:", error);
-        }
-    }, 300);
-}
-
-// Load form data into input fields
-function loadFormData(data) {
-    document.querySelectorAll("input[type='text']").forEach((input) => {
-        const key = input.dataset.field;
-        if (data[key]) input.value = data[key];
-    });
-    document.querySelectorAll("input[type='checkbox']").forEach((checkbox) => {
-        const key = checkbox.dataset.field;
-        if (data[key]) checkbox.checked = data[key] === true || data[key] === "true";
-    });
-}
-
-// Add change event listeners to inputs
-function setupInputListeners(date) {
-    document.querySelectorAll("input").forEach((input) => {
-        input.addEventListener("change", (e) => {
-            const field = e.target.dataset.field;
-            const value = e.target.type === "checkbox" ? e.target.checked : e.target.value;
-            updateField(field, value, date);
+async function updateField(field, value, date) {
+    try {
+        const response = await fetch("/api/update", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ field, value, date }),
         });
+        const result = await response.json();
+        if (!result.success) {
+            console.error("Failed to update:", result.error);
+        }
+    } catch (error) {
+        console.error("Error updating field:", error);
+    }
+}
+
+function createTemperatureTable(data) {
+    const timeSlots = ["8", "9", "10", "11", "12", "1", "2", "3", "4"];
+    const table = document.createElement("table");
+    table.className = "temp-table";
+
+    const thead = document.createElement("thead");
+    const headerRow = document.createElement("tr");
+    headerRow.innerHTML = `
+        <th>Time</th>
+        <th>Fridge Temperature (°C)</th>
+        <th>Freezer Temperature (°C)</th>
+    `;
+    thead.appendChild(headerRow);
+    table.appendChild(thead);
+
+    const tbody = document.createElement("tbody");
+    timeSlots.forEach((time) => {
+        const row = document.createElement("tr");
+        const timeCell = document.createElement("td");
+        timeCell.textContent = `${time}:00`;
+        row.appendChild(timeCell);
+
+        ["fridge", "freezer"].forEach((type) => {
+            const tempCell = document.createElement("td");
+            const input = document.createElement("input");
+            input.type = "text";
+            input.value = data.temperatures?.[`${type}_${time}`] || "";
+            input.dataset.field = `${type}_${time}`;
+            input.addEventListener("change", (e) => {
+                updateField("temperatures", { [e.target.dataset.field]: e.target.value }, data.date);
+            });
+            tempCell.appendChild(input);
+            row.appendChild(tempCell);
+        });
+
+        tbody.appendChild(row);
     });
+    table.appendChild(tbody);
+
+    return table;
 }
