@@ -15,10 +15,14 @@
         <table id="ingredient-table">
             <thead>
                 <tr>
-                    <th>Name</th>
+                    <th>Ingredient Name</th>
                     <th>Allergens</th>
-                    <th>Cost Per Unit</th>
-                    <th>Sourcing Info</th>
+                    <th>Dietary Mentions</th>
+                    <th>Source</th>
+                    <th>Lead Time</th>
+                    <th>Quantity</th>
+                    <th>Cost</th>
+                    <th>Reference Cost</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -26,7 +30,7 @@
                 <!-- Rows will be dynamically populated -->
             </tbody>
         </table>
-        <button id="add-entry-button">Add New Ingredient</button>
+        <button id="add-entry-button" class="primary-button">Add New Ingredient</button>
     </div>
 
     <!-- Modal for Adding/Editing Ingredients -->
@@ -43,12 +47,32 @@
                 <input type="text" id="allergens">
             </div>
             <div class="form-group">
-                <label for="cost">Cost Per Unit:</label>
-                <input type="number" step="0.01" id="cost">
+                <label for="dietary-mentions">Dietary Mentions:</label>
+                <input type="text" id="dietary-mentions">
             </div>
             <div class="form-group">
-                <label for="sourcing">Sourcing Info:</label>
-                <input type="text" id="sourcing">
+                <label for="source">Source:</label>
+                <input type="text" id="source">
+            </div>
+            <div class="form-group">
+                <label for="lead-time">Lead Time:</label>
+                <input type="text" id="lead-time">
+            </div>
+            <div class="form-group">
+                <label for="quantity">Quantity:</label>
+                <input type="number" id="quantity" step="0.01">
+            </div>
+            <div class="form-group">
+                <label for="unit">Unit:</label>
+                <input type="text" id="unit">
+            </div>
+            <div class="form-group">
+                <label for="cost">Cost:</label>
+                <input type="number" id="cost" step="0.01">
+            </div>
+            <div class="form-group">
+                <label for="reference-cost">Reference Cost:</label>
+                <input type="number" id="reference-cost" step="0.01">
             </div>
             <div class="modal-actions">
                 <button id="save-button" class="primary-button">Save</button>
@@ -57,6 +81,6 @@
         </div>
     </div>
 
-    <script src="/static/js/ingredient-reference.js"></script>
+    <script src="/static/js/ingredients.js"></script>
 </body>
 </html>
