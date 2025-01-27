@@ -196,5 +196,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     populateUnits(); // Populate units when the page loads
+    populateAllergensAndDietary();
     fetchIngredients();
 });
