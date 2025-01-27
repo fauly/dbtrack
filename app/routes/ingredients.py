@@ -27,7 +27,7 @@ def add_ingredient():
         allergens=data["allergens"],
         dietary_mentions=data["dietary_mentions"],
         source=data["source"],
-        lead_time=data["leadTime"],
+        lead_time=data["lead_time"],
         quantity=data["quantity"],
         unit=data["unit"],
         cost=data["cost"]
@@ -53,8 +53,8 @@ def update_ingredient(ingredient_id):
         ingredient.dietary_mentions = data["dietary_mentions"]
     if "source" in data:
         ingredient.source = data["source"]
-    if "leadTime" in data:
-        ingredient.lead_time = data["leadTime"]
+    if "lead_time" in data:
+        ingredient.lead_time = data["lead_time"]
     if "quantity" in data:
         ingredient.quantity = data["quantity"]
     if "unit" in data:

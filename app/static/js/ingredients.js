@@ -8,7 +8,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const formInputs = {
         name: document.getElementById("name"),
         source: document.getElementById("source"),
-        leadTime: document.getElementById("lead-time"),
+        lead_time: document.getElementById("lead-time"),
         quantity: document.getElementById("quantity"),
         unit: document.getElementById("unit"),
         cost: document.getElementById("cost"),
