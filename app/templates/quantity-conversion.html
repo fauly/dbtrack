@@ -9,15 +9,18 @@
 <body>
     <div class="container">
         <h1>Quantity Conversion Table</h1>
-        <div class="search-section">
+        <div class="filter-section">
+            <div id="checkbox-filters">
+                <!-- Checkboxes for base unit filtering will be added dynamically -->
+            </div>
             <input type="text" id="search-input" placeholder="Search conversions...">
         </div>
         <table id="conversion-table">
             <thead>
                 <tr>
-                    <th>Unit Name</th>
-                    <th>Reference Unit Amount</th>
-                    <th>Reference Unit Name</th>
+                    <th data-column="unit_name">Unit Name</th>
+                    <th data-column="reference_unit_amount">Reference Unit Amount</th>
+                    <th data-column="reference_unit_name">Reference Unit Name</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -27,7 +30,7 @@
         </table>
         <button id="add-entry-button">Add New Conversion</button>
     </div>
-
+    
     <!-- Modal for Adding/Editing Conversions -->
     <div id="conversion-modal" class="modal">
         <div class="modal-content">
