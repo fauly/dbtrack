@@ -71,21 +71,22 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (a[column] > b[column]) return order === "asc" ? 1 : -1;
                 return 0;
             });
-
-        filteredData.forEach((item, index) => {
+    
+        filteredData.forEach(item => {
             const row = document.createElement("tr");
             row.innerHTML = `
                 <td>${item.unit_name}</td>
                 <td>${item.reference_unit_amount}</td>
                 <td>${item.reference_unit_name}</td>
                 <td>
-                    <button data-index="${index}" class="edit-button">Edit</button>
-                    <button data-index="${index}" class="delete-button">Delete</button>
+                    <button data-id="${item.id}" class="edit-button">Edit</button>
+                    <button data-id="${item.id}" class="delete-button">Delete</button>
                 </td>
             `;
             tableBody.appendChild(row);
         });
     }
+    
 
     function openModal(editIndex = null) {
         editingIndex = editIndex;
@@ -176,14 +177,17 @@ document.addEventListener("DOMContentLoaded", () => {
     cancelButton.addEventListener("click", closeModal);
     tableBody.addEventListener("click", (e) => {
         if (e.target.classList.contains("edit-button")) {
-            openModal(parseInt(e.target.dataset.index));
+            const id = e.target.getAttribute("data-id");
+            const entry = conversionData.find(item => item.id === parseInt(id));
+            openModal(conversionData.indexOf(entry));
         } else if (e.target.classList.contains("delete-button")) {
-            const unitName = conversionData[parseInt(e.target.dataset.index)].unit_name;
-            fetch(`/api/quantity-conversions/${unitName}`, { method: "DELETE" })
+            const id = e.target.getAttribute("data-id");
+            fetch(`/api/quantity-conversions/${id}`, { method: "DELETE" })
                 .then(() => fetchConversions())
                 .catch(error => console.error("Error deleting entry:", error));
         }
     });
+    
 
     fetchConversions();
 });
