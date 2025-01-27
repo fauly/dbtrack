@@ -47,9 +47,9 @@ def update_conversion(unit_name):
     return jsonify({"message": "Conversion updated successfully!", "data": conversion.to_dict()}), 200
 
 # Delete a quantity conversion
-@bp.route("/<unit_id>", methods=["DELETE"])
+@bp.route("/<int:unit_id>", methods=["DELETE"])
 def delete_conversion(unit_id):
-    conversion = QuantityConversion.query.filter_by(unit_id=unit_id).first()
+    conversion = QuantityConversion.query.filter_by(id=unit_id).first()
     if not conversion:
         return jsonify({"error": f"Conversion with id '{unit_id}' not found."}), 404
 
