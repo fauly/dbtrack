@@ -13,8 +13,8 @@ def get_ingredients():
 @bp.route("/", methods=["POST"])
 def add_ingredient():
     data = request.json
-    if not data or "name" not in data or "allergens" not in data or "cost_per_unit" not in data or "sourcing_info" not in data:
-        return jsonify({"error": "Invalid input. 'name', 'allergens', 'cost_per_unit', and 'sourcing_info' are required."}), 400
+    if not data or "name" not in data or "allergens" not in data or "cost" not in data or "source" not in data:
+        return jsonify({"error": "Invalid input. 'name', 'allergens', 'cost', and 'source' are required."}), 400
 
     # Check if the ingredient already exists
     existing_ingredient = Ingredients.query.filter_by(name=data["name"]).first()
@@ -25,8 +25,8 @@ def add_ingredient():
     ingredient = Ingredients(
         name=data["name"],
         allergens=data["allergens"],
-        cost_per_unit=data["cost_per_unit"],
-        sourcing_info=data["sourcing_info"]
+        cost=data["cost"],
+        source=data["source"]
     )
     db.session.add(ingredient)
     db.session.commit()
@@ -45,10 +45,10 @@ def update_ingredient(ingredient_id):
         ingredient.name = data["name"]
     if "allergens" in data:
         ingredient.allergens = data["allergens"]
-    if "cost_per_unit" in data:
-        ingredient.cost_per_unit = data["cost_per_unit"]
-    if "sourcing_info" in data:
-        ingredient.sourcing_info = data["sourcing_info"]
+    if "cost" in data:
+        ingredient.cost = data["cost"]
+    if "source" in data:
+        ingredient.source = data["source"]
 
     db.session.commit()
     return jsonify({"message": "Ingredient updated successfully!", "data": ingredient.to_dict()}), 200

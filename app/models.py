@@ -41,17 +41,14 @@ class Ingredients(db.Model):
     __tablename__ = "ingredients"
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False, unique=True)  # Ingredient name
-    allergens = db.Column(db.String(255), nullable=True)  # Allergen information
-    dietary_mentions = db.Column(db.String(255), nullable=True)  # Vegan, Vegetarian, etc.
-    source = db.Column(db.String(255), nullable=True)  # Sourcing information
-    lead_time = db.Column(db.String(50), nullable=True)  # Procurement time
-    quantity = db.Column(db.Float, nullable=True)  # Available quantity
-    unit = db.Column(db.String(20), nullable=True)  # Unit of measurement
-    cost = db.Column(db.Float, nullable=True)  # Cost per unit
-
-    # Relationship to NutritionalValue table
-    nutritional_values = db.relationship("NutritionalValue", backref="ingredient", cascade="all, delete-orphan")
+    name = db.Column(db.String(100), nullable=False, unique=True)
+    allergens = db.Column(db.String(255), nullable=True)
+    dietary_mentions = db.Column(db.String(255), nullable=True)
+    source = db.Column(db.String(255), nullable=True)  # Changed from sourcing_info
+    lead_time = db.Column(db.String(50), nullable=True)
+    quantity = db.Column(db.Float, nullable=True)
+    unit = db.Column(db.String(50), nullable=True)
+    cost = db.Column(db.Float, nullable=False)  # Changed from cost_per_unit
 
     def to_dict(self):
         return {
@@ -65,6 +62,7 @@ class Ingredients(db.Model):
             "unit": self.unit,
             "cost": self.cost,
         }
+
 
 class NutritionalValue(db.Model):
     __tablename__ = "nutritional_values"
