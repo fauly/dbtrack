@@ -24,16 +24,15 @@ class DailyLog(db.Model):
 class QuantityConversion(db.Model):
     __tablename__ = "quantity_conversions"
 
-    id = db.Column(db.Integer, primary_key=True)  # Unique identifier
-    unit_name = db.Column(db.String(50), nullable=False, unique=True)  # Unit name (e.g., "tbsp")
-    reference_unit_amount = db.Column(db.Float, nullable=False)  # Conversion amount (e.g., 14.175 for tbsp to g)
-    reference_unit_name = db.Column(db.String(50), nullable=False)  # Reference unit (e.g., "g")
+    id = db.Column(db.Integer, primary_key=True)
+    unit_name = db.Column(db.String(50), nullable=False, unique=True)
+    reference_unit_name = db.Column(db.String(50), nullable=False)
+    reference_unit_amount = db.Column(db.Float, nullable=False)
 
     def to_dict(self):
-        """Convert model instance to a dictionary for JSON responses."""
         return {
             "id": self.id,
             "unit_name": self.unit_name,
-            "reference_unit_amount": self.reference_unit_amount,
             "reference_unit_name": self.reference_unit_name,
+            "reference_unit_amount": self.reference_unit_amount,
         }

@@ -64,15 +64,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
     async function saveEntry() {
         const newEntry = {
-            unit: unitInput.value.trim(),
-            reference_unit: referenceUnitInput.value.trim(),
-            value: parseFloat(valueInput.value),
+            unit_name: unitInput.value.trim(),
+            reference_unit_name: referenceUnitInput.value.trim(),
+            reference_unit_amount: parseFloat(valueInput.value),
         };
-
+    
+        if (!newEntry.unit_name || !newEntry.reference_unit_name || isNaN(newEntry.reference_unit_amount)) {
+            alert("All fields are required and 'value' must be a valid number.");
+            return;
+        }
+    
+        console.log("Saving entry:", newEntry);
+    
         try {
             if (editingIndex !== null) {
                 // Update existing entry
-                const response = await fetch(`/api/quantity-conversions/${conversionData[editingIndex].unit}`, {
+                const response = await fetch(`/api/quantity-conversions/${conversionData[editingIndex].unit_name}`, {
                     method: "PUT",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(newEntry),
@@ -87,14 +94,15 @@ document.addEventListener("DOMContentLoaded", () => {
                 });
                 if (!response.ok) throw new Error("Failed to add conversion.");
             }
-
+    
             closeModal();
             fetchConversions();
         } catch (error) {
             console.error("Error saving entry:", error);
+            alert("Failed to save the entry. Check the console for details.");
         }
     }
-
+    
     searchInput.addEventListener("input", renderTable);
     addEntryButton.addEventListener("click", () => openModal());
     saveButton.addEventListener("click", saveEntry);
