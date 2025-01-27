@@ -50,7 +50,7 @@ def update_ingredient(ingredient_id):
     if "allergens" in data:
         ingredient.allergens = data["allergens"]
     if "dietary_mentions" in data:
-        ingredient.dietary_mentions - data["dietary_mentions"]
+        ingredient.dietary_mentions = data["dietary_mentions"]
     if "source" in data:
         ingredient.source = data["source"]
     if "leadTime" in data:
