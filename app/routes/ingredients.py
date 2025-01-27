@@ -25,8 +25,12 @@ def add_ingredient():
     ingredient = Ingredients(
         name=data["name"],
         allergens=data["allergens"],
-        cost=data["cost"],
-        source=data["source"]
+        dietary_mentions=data["dietary_mentions"],
+        source=data["source"],
+        lead_time=data["leadTime"],
+        quantity=data["quantity"],
+        unit=data["unit"],
+        cost=data["cost"]
     )
     db.session.add(ingredient)
     db.session.commit()
@@ -45,10 +49,18 @@ def update_ingredient(ingredient_id):
         ingredient.name = data["name"]
     if "allergens" in data:
         ingredient.allergens = data["allergens"]
-    if "cost" in data:
-        ingredient.cost = data["cost"]
+    if "dietary_mentions" in data:
+        ingredient.dietart_mentions - data["dietary_mentions"]
     if "source" in data:
         ingredient.source = data["source"]
+    if "leadTime" in data:
+        ingredient.lead_time = data["leadTime"]
+    if "quantity" in data:
+        ingredient.quantity = data["quantity"]
+    if "unit" in data:
+        ingredient.unit = data["unit"]
+    if "cost" in data:
+        ingredient.cost = data["cost"]
 
     db.session.commit()
     return jsonify({"message": "Ingredient updated successfully!", "data": ingredient.to_dict()}), 200
