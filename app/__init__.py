@@ -15,6 +15,12 @@ def create_app():
     app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{DATABASE_PATH}"
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+    # Ensure the database directory exists
+    DATABASE_DIR = os.path.join(BASE_DIR, 'database')
+    if not os.path.exists(DATABASE_DIR):
+        os.makedirs(DATABASE_DIR)
+
+
     # Initialize extensions
     db.init_app(app)
     migrate.init_app(app, db)
