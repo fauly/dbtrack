@@ -156,3 +156,22 @@ input[type="text"] {
         transform: translateY(0);
     }
 }
+
+h3 {
+    font-size: 1.25rem;
+    color: #444;
+    margin-top: 20px;
+}
+
+div {
+    margin-bottom: 10px;
+}
+
+input[type="number"], textarea {
+    width: 100%;
+    padding: 8px;
+    margin-top: 5px;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}

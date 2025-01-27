@@ -11,7 +11,7 @@ app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{os.path.join(BASE_DIR, 'dat
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db = SQLAlchemy(app)
 
-# Database Models
+# Database Model
 class DailyLog(db.Model):
     __tablename__ = "daily_logs"
 
@@ -19,11 +19,17 @@ class DailyLog(db.Model):
     date = db.Column(db.Date, default=date.today, nullable=False)
     last_edited = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
     temperatures = db.Column(db.JSON, default={})  # Store fridge/freezer data
-    opening_clean = db.Column(db.DateTime, nullable=True)  # Store timestamp when checked
-    midday_clean = db.Column(db.DateTime, nullable=True)  # Store timestamp when checked
-    end_of_day_clean = db.Column(db.DateTime, nullable=True)  # Store timestamp when checked
-    grey_water = db.Column(db.DateTime, nullable=True)  # Store timestamp when checked
-    bin_emptied = db.Column(db.DateTime, nullable=True)  # Store timestamp when checked
+    opening_clean = db.Column(db.DateTime, nullable=True)
+    midday_clean = db.Column(db.DateTime, nullable=True)
+    end_of_day_clean = db.Column(db.DateTime, nullable=True)
+    grey_water = db.Column(db.DateTime, nullable=True)
+    bin_emptied = db.Column(db.DateTime, nullable=True)
+
+    # New fields
+    stock_used = db.Column(db.JSON, default={})  # Track stock usage
+    food_waste = db.Column(db.Integer, nullable=True)  # Food waste in grams
+    customer_feedback = db.Column(db.Text, nullable=True)  # Free-text feedback
+    equipment_issues = db.Column(db.Text, nullable=True)  # Free-text for equipment issues
 
 # Routes
 @app.route("/")
@@ -45,7 +51,8 @@ def get_daily_report():
         db.session.commit()
 
     data = {col.name: getattr(log, col.name) for col in log.__table__.columns}
-    data["temperatures"] = log.temperatures or {} # Ensure temperatures are always a dictionary
+    data["temperatures"] = log.temperatures or {}
+    data["stock_used"] = log.stock_used or {}
     return jsonify(data)
 
 @app.route("/api/update", methods=["POST"])

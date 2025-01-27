@@ -55,6 +55,44 @@ document.addEventListener("DOMContentLoaded", () => {
 
         reportContainer.appendChild(tempTable);
 
+        // Stock Usage Section
+        const stockSection = document.createElement("div");
+        stockSection.innerHTML = `<h3>Stock Usage</h3>`;
+        ["Pastries", "Coffee Beans", "Tea Bags", "Protein Shake Powder"].forEach((item) => {
+            const stockValue = data.stock_used[item] || "";
+            stockSection.innerHTML += `
+                <div>
+                    <label>${item}:</label>
+                    <input type="number" data-field="stock_used" data-key="${item}" value="${stockValue}">
+                </div>
+            `;
+        });
+        reportContainer.appendChild(stockSection);
+
+        // Food Waste Section
+        const wasteSection = document.createElement("div");
+        wasteSection.innerHTML = `
+            <h3>Food Waste</h3>
+            <label>Amount of Food Waste (grams):</label>
+            <input type="number" data-field="food_waste" value="${data.food_waste || ""}">
+        `;
+        reportContainer.appendChild(wasteSection);
+
+        // Customer Feedback Section
+        const feedbackSection = document.createElement("div");
+        feedbackSection.innerHTML = `
+            <h3>Customer Feedback</h3>
+            <textarea data-field="customer_feedback" rows="4">${data.customer_feedback || ""}</textarea>
+        `;
+        reportContainer.appendChild(feedbackSection);
+
+        // Equipment Issues Section
+        const equipmentSection = document.createElement("div");
+        equipmentSection.innerHTML = `
+            <h3>Equipment Issues</h3>
+            <textarea data-field="equipment_issues" rows="4">${data.equipment_issues || ""}</textarea>
+        `;
+        reportContainer.appendChild(equipmentSection);
         // Additional Checkboxes
         const checkboxSection = document.createElement("div");
         checkboxSection.innerHTML = `<h3>Additional Checks</h3>`;
@@ -128,19 +166,19 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     reportContainer.addEventListener("change", (e) => {
-        if (e.target.tagName === "INPUT") {
+        if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") {
             const field = e.target.dataset.field;
             const key = e.target.dataset.key;
             const value = e.target.type === "checkbox" ? e.target.checked : e.target.value;
             const selectedDate = dateInput.value;
-
-            if (field === "temperatures") {
+    
+            if (field === "stock_used") {
                 updateField(field, { [key]: value }, selectedDate);
             } else {
                 updateField(field, value, selectedDate);
             }
         }
-    });
+    });    
 
     prevDateButton.addEventListener("click", () => {
         const currentDate = dateInput.value;
