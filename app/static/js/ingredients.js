@@ -132,6 +132,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     async function saveEntry() {
         const newEntry = {};
+    
+        // Get selected allergens and dietary mentions
         const selectedAllergens = Array.from(document.querySelectorAll("#allergen-buttons .toggle-button.active"))
             .map(button => button.textContent);
         const selectedDietary = Array.from(document.querySelectorAll("#dietary-buttons .toggle-button.active"))
@@ -139,8 +141,10 @@ document.addEventListener("DOMContentLoaded", () => {
     
         // Gather values from form inputs
         for (const key in formInputs) {
-            const value = formInputs[key].value.trim();
-            newEntry[key] = isNaN(value) || value === "" ? value : parseFloat(value);
+            if (formInputs[key]) { // Ensure the input element exists
+                const value = formInputs[key].value.trim();
+                newEntry[key] = isNaN(value) || value === "" ? value : parseFloat(value);
+            }
         }
     
         // Add allergens and dietary mentions to the entry
@@ -178,6 +182,7 @@ document.addEventListener("DOMContentLoaded", () => {
             alert("Failed to save the entry. Check the console for details.");
         }
     }
+    
     
     searchInput.addEventListener("input", renderTable);
     addEntryButton.addEventListener("click", () => openModal());
