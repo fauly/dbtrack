@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quantity Conversion</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Quantity Conversion Table</h1>
+        <div class="search-section">
+            <input type="text" id="search-input" placeholder="Search conversions...">
+        </div>
+        <table id="conversion-table">
+            <thead>
+                <tr>
+                    <th>Unit</th>
+                    <th>Reference Unit</th>
+                    <th>g or ml</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Rows will be dynamically populated -->
+            </tbody>
+        </table>
+        <button id="add-entry-button">Add New Conversion</button>
+    </div>
+
+    <!-- Modal for Adding/Editing Conversions -->
+    <div id="conversion-modal" class="modal">
+        <div class="modal-content">
+            <h2 id="modal-title">Add/Edit Conversion</h2>
+            <label for="unit">Unit:</label>
+            <input type="text" id="unit">
+            <label for="reference-unit">Reference Unit:</label>
+            <input type="text" id="reference-unit">
+            <label for="value">g or ml:</label>
+            <input type="number" id="value">
+            <button id="save-button">Save</button>
+            <button id="cancel-button">Cancel</button>
+        </div>
+    </div>
+
+    <script src="/static/js/quantity-conversion.js"></script>
+</body>
+</html>
