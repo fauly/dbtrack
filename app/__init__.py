@@ -22,6 +22,10 @@ def create_app():
     from app.routes.pages import bp as pages_bp
     app.register_blueprint(pages_bp)
 
+    from app.routes.error_handlers import errors as errors_bp
+    app.register_blueprint(errors_bp)
+
+
     from app.routes.daily_report import bp as daily_report_bp
     app.register_blueprint(daily_report_bp, url_prefix="/api")
 
