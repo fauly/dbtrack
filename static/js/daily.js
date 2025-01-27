@@ -55,19 +55,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
         reportContainer.appendChild(tempTable);
 
-        // Stock Usage Section
-        const stockSection = document.createElement("div");
-        stockSection.innerHTML = `<h3>Stock Usage</h3>`;
-        ["Pastries", "Coffee Beans", "Tea Bags", "Protein Shake Powder"].forEach((item) => {
-            const stockValue = data.stock_used[item] || "";
-            stockSection.innerHTML += `
-                <div>
-                    <label>${item}:</label>
-                    <input type="number" data-field="stock_used" data-key="${item}" value="${stockValue}">
-                </div>
-            `;
-        });
-        reportContainer.appendChild(stockSection);
+        // // Stock Usage Section
+        // const stockSection = document.createElement("div");
+        // stockSection.innerHTML = `<h3>Stock Usage</h3>`;
+        // ["Pastries", "Coffee Beans", "Tea Bags", "Protein Shake Powder"].forEach((item) => {
+        //     const stockValue = data.stock_used[item] || "";
+        //     stockSection.innerHTML += `
+        //         <div>
+        //             <label>${item}:</label>
+        //             <input type="number" data-field="stock_used" data-key="${item}" value="${stockValue}">
+        //         </div>
+        //     `;
+        // });
+        // reportContainer.appendChild(stockSection);
 
         // Food Waste Section
         const wasteSection = document.createElement("div");
@@ -172,11 +172,11 @@ document.addEventListener("DOMContentLoaded", () => {
             const value = e.target.type === "checkbox" ? e.target.checked : e.target.value;
             const selectedDate = dateInput.value;
     
-            if (field === "stock_used") {
-                updateField(field, { [key]: value }, selectedDate);
-            } else {
-                updateField(field, value, selectedDate);
-            }
+            // if (field === "stock_used") {
+            //     updateField(field, { [key]: value }, selectedDate);
+            // } else {
+            //     updateField(field, value, selectedDate);
+            // }
         }
     });    
 
