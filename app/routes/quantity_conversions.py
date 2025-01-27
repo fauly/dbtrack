@@ -13,48 +13,50 @@ def get_conversions():
 @bp.route("/", methods=["POST"])
 def add_conversion():
     data = request.json
-    if not data or "unit" not in data or "reference_unit" not in data or "value" not in data:
-        return jsonify({"error": "Invalid input. 'unit', 'reference_unit', and 'value' are required."}), 400
+    if not data or "unit_name" not in data or "reference_unit_name" not in data or "reference_unit_amount" not in data:
+        return jsonify({
+            "error": "Invalid input. 'unit_name', 'reference_unit_name', and 'reference_unit_amount' are required."
+        }), 400
 
     # Check if the unit already exists
-    existing_conversion = QuantityConversion.query.filter_by(unit=data["unit"]).first()
+    existing_conversion = QuantityConversion.query.filter_by(unit_name=data["unit_name"]).first()
     if existing_conversion:
-        return jsonify({"error": f"Conversion for unit '{data['unit']}' already exists."}), 400
+        return jsonify({"error": f"Conversion for unit '{data['unit_name']}' already exists."}), 400
 
     # Add to the database
     conversion = QuantityConversion(
-        unit=data["unit"],
-        reference_unit=data["reference_unit"],
-        value=data["value"],
+        unit_name=data["unit_name"],
+        reference_unit_name=data["reference_unit_name"],
+        reference_unit_amount=data["reference_unit_amount"],
     )
     db.session.add(conversion)
     db.session.commit()
     return jsonify({"message": "Conversion added successfully!", "data": conversion.to_dict()}), 201
 
 # Update an existing quantity conversion
-@bp.route("/<unit>", methods=["PUT"])
-def update_conversion(unit):
+@bp.route("/<unit_name>", methods=["PUT"])
+def update_conversion(unit_name):
     data = request.json
-    conversion = QuantityConversion.query.filter_by(unit=unit).first()
+    conversion = QuantityConversion.query.filter_by(unit_name=unit_name).first()
     if not conversion:
-        return jsonify({"error": f"Conversion with unit '{unit}' not found."}), 404
+        return jsonify({"error": f"Conversion with unit '{unit_name}' not found."}), 404
 
     # Update fields
-    if "reference_unit" in data:
-        conversion.reference_unit = data["reference_unit"]
-    if "value" in data:
-        conversion.value = data["value"]
+    if "reference_unit_name" in data:
+        conversion.reference_unit_name = data["reference_unit_name"]
+    if "reference_unit_amount" in data:
+        conversion.reference_unit_amount = data["reference_unit_amount"]
 
     db.session.commit()
     return jsonify({"message": "Conversion updated successfully!", "data": conversion.to_dict()}), 200
 
 # Delete a quantity conversion
-@bp.route("/<unit>", methods=["DELETE"])
-def delete_conversion(unit):
-    conversion = QuantityConversion.query.filter_by(unit=unit).first()
+@bp.route("/<unit_name>", methods=["DELETE"])
+def delete_conversion(unit_name):
+    conversion = QuantityConversion.query.filter_by(unit_name=unit_name).first()
     if not conversion:
-        return jsonify({"error": f"Conversion with unit '{unit}' not found."}), 404
+        return jsonify({"error": f"Conversion with unit '{unit_name}' not found."}), 404
 
     db.session.delete(conversion)
     db.session.commit()
-    return jsonify({"message": f"Conversion with unit '{unit}' deleted."}), 200
+    return jsonify({"message": f"Conversion with unit '{unit_name}' deleted."}), 200
