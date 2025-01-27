@@ -10,6 +10,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const valueInput = document.getElementById("value");
     const saveButton = document.getElementById("save-button");
     const cancelButton = document.getElementById("cancel-button");
+    const checkboxFilters = document.getElementById("checkbox-filters");
 
     let conversionData = [];
     let editingIndex = null;
