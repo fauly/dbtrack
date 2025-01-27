@@ -25,6 +25,24 @@ document.addEventListener("DOMContentLoaded", () => {
     // Ensure modal is hidden by default
     modal.style.display = "none";
 
+    async function populateUnits() {
+        try {
+            const response = await fetch("/api/quantity-conversions/");
+            const units = await response.json();
+            const unitDropdown = document.getElementById("unit");
+    
+            unitDropdown.innerHTML = ""; // Clear existing options
+            units.forEach(unit => {
+                const option = document.createElement("option");
+                option.value = unit.unit_name;
+                option.textContent = unit.unit_name;
+                unitDropdown.appendChild(option);
+            });
+        } catch (error) {
+            console.error("Error fetching units:", error);
+        }
+    }
+
     async function fetchIngredients() {
         try {
             const response = await fetch("/api/ingredients/");
@@ -137,5 +155,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
+    populateUnits(); // Populate units when the page loads
     fetchIngredients();
 });

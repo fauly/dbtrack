@@ -183,6 +183,7 @@ input[type="number"], textarea {
     left: 0;
     width: 100%;
     height: 100%;
+    overflow-y: auto; /* Ensure scrollability */
     background-color: rgba(0, 0, 0, 0.6);
     display: none; /* Hidden by default */
     align-content: center;
@@ -200,6 +201,8 @@ input[type="number"], textarea {
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
     text-align: center;
     position: relative;
+    max-height: 90vh; /* Prevent overflowing beyond the screen */
+    overflow-y: auto; /* Scrollable modal content */
 }
 
 /* Close button */
@@ -216,6 +219,7 @@ input[type="number"], textarea {
     width: 95%;
     margin-bottom: 15px;
     text-align: left;
+    margin-bottom: 15px;
 }
 
 .form-group label {
@@ -237,6 +241,7 @@ input[type="number"], textarea {
     display: flex;
     justify-content: space-between;
     margin-top: 20px;
+    text-align: right;
 }
 
 .primary-button {
@@ -244,6 +249,7 @@ input[type="number"], textarea {
     color: white;
     border: none;
     padding: 10px 20px;
+    margin: 5px;
     border-radius: 4px;
     cursor: pointer;
     font-size: 14px;
@@ -254,6 +260,7 @@ input[type="number"], textarea {
     color: white;
     border: none;
     padding: 10px 20px;
+    margin: 5px;
     border-radius: 4px;
     cursor: pointer;
     font-size: 14px;
