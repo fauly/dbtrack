@@ -20,7 +20,7 @@ def create_app():
     migrate.init_app(app, db)
 
     # Register blueprints
-    from app.routes import daily_report
+    from routes import daily_report
     app.register_blueprint(daily_report.bp)
 
     return app
