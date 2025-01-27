@@ -13,9 +13,12 @@ document.addEventListener("DOMContentLoaded", () => {
     let conversionData = [];
     let editingIndex = null;
 
+    // Ensure modal is hidden by default
+    modal.style.display = "none";
+
     async function fetchConversions() {
         try {
-            const response = await fetch("/api/quantity-conversions");
+            const response = await fetch("/api/quantity-conversions/");
             conversionData = await response.json();
             renderTable();
         } catch (error) {
@@ -61,45 +64,34 @@ document.addEventListener("DOMContentLoaded", () => {
 
     async function saveEntry() {
         const newEntry = {
-            unit: unitInput.value,
-            reference_unit: referenceUnitInput.value,
+            unit: unitInput.value.trim(),
+            reference_unit: referenceUnitInput.value.trim(),
             value: parseFloat(valueInput.value),
         };
 
-        if (editingIndex !== null) {
-            // Update existing entry
-            conversionData[editingIndex] = newEntry;
-        } else {
-            // Add new entry
-            conversionData.push(newEntry);
-        }
-
-        closeModal();
-        renderTable();
-
         try {
-            await fetch("/api/quantity-conversions", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(conversionData),
-            });
+            if (editingIndex !== null) {
+                // Update existing entry
+                const response = await fetch(`/api/quantity-conversions/${conversionData[editingIndex].unit}`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(newEntry),
+                });
+                if (!response.ok) throw new Error("Failed to update conversion.");
+            } else {
+                // Add new entry
+                const response = await fetch("/api/quantity-conversions/", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(newEntry),
+                });
+                if (!response.ok) throw new Error("Failed to add conversion.");
+            }
+
+            closeModal();
+            fetchConversions();
         } catch (error) {
             console.error("Error saving entry:", error);
-        }
-    }
-
-    async function deleteEntry(index) {
-        conversionData.splice(index, 1);
-        renderTable();
-
-        try {
-            await fetch("/api/quantity-conversions", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(conversionData),
-            });
-        } catch (error) {
-            console.error("Error deleting entry:", error);
         }
     }
 
@@ -111,7 +103,10 @@ document.addEventListener("DOMContentLoaded", () => {
         if (e.target.classList.contains("edit-button")) {
             openModal(parseInt(e.target.dataset.index));
         } else if (e.target.classList.contains("delete-button")) {
-            deleteEntry(parseInt(e.target.dataset.index));
+            const unit = conversionData[parseInt(e.target.dataset.index)].unit;
+            fetch(`/api/quantity-conversions/${unit}`, { method: "DELETE" })
+                .then(() => fetchConversions())
+                .catch(error => console.error("Error deleting entry:", error));
         }
     });
 

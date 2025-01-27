@@ -17,7 +17,8 @@ def add_conversion():
         return jsonify({"error": "Invalid input. 'unit', 'reference_unit', and 'value' are required."}), 400
 
     # Check if the unit already exists
-    if QuantityConversion.query.filter_by(unit=data["unit"]).first():
+    existing_conversion = QuantityConversion.query.filter_by(unit=data["unit"]).first()
+    if existing_conversion:
         return jsonify({"error": f"Conversion for unit '{data['unit']}' already exists."}), 400
 
     # Add to the database
