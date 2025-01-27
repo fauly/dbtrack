@@ -50,7 +50,7 @@ document.addEventListener("DOMContentLoaded", () => {
     function openModal(editIndex = null) {
         editingIndex = editIndex;
         modalTitle.textContent = editingIndex !== null ? "Edit Conversion" : "Add Conversion";
-        const entry = editingIndex !== null ? conversionData[editingIndex] : { unit: "", reference_unit: "", value: "" };
+        const entry = editingIndex !== null ? conversionData[editingIndex] : { unit_name: "", reference_unit_name: "", reference_unit_amount: "" };
         unitInput.value = entry.unit;
         referenceUnitInput.value = entry.reference_unit;
         valueInput.value = entry.value;
