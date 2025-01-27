@@ -14,7 +14,6 @@ document.addEventListener("DOMContentLoaded", () => {
         quantity: document.getElementById("quantity"),
         unit: document.getElementById("unit"),
         cost: document.getElementById("cost"),
-        referenceCost: document.getElementById("reference-cost"),
     };
     const saveButton = document.getElementById("save-button");
     const cancelButton = document.getElementById("cancel-button");
@@ -82,20 +81,25 @@ document.addEventListener("DOMContentLoaded", () => {
     function openModal(editIndex = null) {
         editingIndex = editIndex;
         modalTitle.textContent = editingIndex !== null ? "Edit Ingredient" : "Add Ingredient";
-
+    
         if (editingIndex !== null) {
             const entry = ingredientData[editingIndex];
             for (const key in formInputs) {
-                formInputs[key].value = entry[key] || "";
+                if (formInputs[key]) { // Ensure the input exists
+                    formInputs[key].value = entry[key] || "";
+                }
             }
         } else {
             for (const key in formInputs) {
-                formInputs[key].value = "";
+                if (formInputs[key]) { // Ensure the input exists
+                    formInputs[key].value = "";
+                }
             }
         }
-
+    
         modal.style.display = "block";
     }
+    
 
     function closeModal() {
         modal.style.display = "none";
