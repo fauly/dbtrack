@@ -43,28 +43,17 @@
                 <input type="text" id="name">
             </div>
             <div class="form-group">
-                <label>Dietary Mentions:</label>
-                <div id="dietary-mentions">
-                    <label><input type="checkbox" value="vegan"> Vegan</label>
-                    <label><input type="checkbox" value="vegetarian"> Vegetarian</label>
-                    <label><input type="checkbox" value="dairy-free"> Dairy-Free</label>
-                    <label><input type="checkbox" value="gluten-free"> Gluten-Free</label>
-                    <label><input type="checkbox" value="nut-free"> Nut-Free</label>
-                    <label><input type="checkbox" value="egg-free"> Egg-Free</label>
+                <label>Allergens:</label>
+                <div id="allergen-buttons" class="grid-container">
+                    <!-- Allergen buttons dynamically populated -->
                 </div>
             </div>
             <div class="form-group">
-                <label>Allergens:</label>
-                <div id="allergens">
-                    <label><input type="checkbox" value="peanuts"> Peanuts</label>
-                    <label><input type="checkbox" value="tree-nuts"> Tree Nuts</label>
-                    <label><input type="checkbox" value="milk"> Milk</label>
-                    <label><input type="checkbox" value="eggs"> Eggs</label>
-                    <label><input type="checkbox" value="fish"> Fish</label>
-                    <label><input type="checkbox" value="shellfish"> Shellfish</label>
-                    <label><input type="checkbox" value="soy"> Soy</label>
+                <label>Dietary Mentions:</label>
+                <div id="dietary-buttons" class="grid-container">
+                    <!-- Dietary buttons dynamically populated -->
                 </div>
-            </div>
+            </div>            
             <div class="form-group">
                 <label for="source">Source:</label>
                 <input type="text" id="source">
@@ -79,9 +68,10 @@
             </div>
             <div class="form-group">
                 <label for="unit">Unit:</label>
-                <select id="unit">
-                    <!-- Units will be dynamically populated -->
-                </select>
+                <input type="text" id="unit" list="unit-list" placeholder="Type or select a unit">
+                <datalist id="unit-list">
+                    <!-- Unit options dynamically populated -->
+                </datalist>
             </div>
             <div class="form-group">
                 <label for="cost">Cost:</label>

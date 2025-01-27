@@ -24,23 +24,47 @@ document.addEventListener("DOMContentLoaded", () => {
     // Ensure modal is hidden by default
     modal.style.display = "none";
 
+    const allergens = ["Dairy", "Egg", "Gluten", "Peanut", "Soy", "Tree Nuts", "Shellfish"];
+    const dietaryMentions = ["Vegan", "Vegetarian", "Dairy-Free", "Gluten-Free"];
+    
+    function populateAllergensAndDietary() {
+        const allergenContainer = document.getElementById("allergen-buttons");
+        const dietaryContainer = document.getElementById("dietary-buttons");
+    
+        allergens.forEach(allergen => {
+            const button = document.createElement("button");
+            button.className = "toggle-button";
+            button.textContent = allergen;
+            button.addEventListener("click", () => button.classList.toggle("active"));
+            allergenContainer.appendChild(button);
+        });
+    
+        dietaryMentions.forEach(mention => {
+            const button = document.createElement("button");
+            button.className = "toggle-button";
+            button.textContent = mention;
+            button.addEventListener("click", () => button.classList.toggle("active"));
+            dietaryContainer.appendChild(button);
+        });
+    }    
+
     async function populateUnits() {
         try {
             const response = await fetch("/api/quantity-conversions/");
             const units = await response.json();
-            const unitDropdown = document.getElementById("unit");
+            const unitList = document.getElementById("unit-list");
     
-            unitDropdown.innerHTML = ""; // Clear existing options
+            unitList.innerHTML = ""; // Clear existing options
             units.forEach(unit => {
                 const option = document.createElement("option");
                 option.value = unit.unit_name;
-                option.textContent = unit.unit_name;
-                unitDropdown.appendChild(option);
+                unitList.appendChild(option);
             });
         } catch (error) {
             console.error("Error fetching units:", error);
         }
     }
+    
 
     async function fetchIngredients() {
         try {
@@ -108,17 +132,29 @@ document.addEventListener("DOMContentLoaded", () => {
 
     async function saveEntry() {
         const newEntry = {};
+        const selectedAllergens = Array.from(document.querySelectorAll("#allergen-buttons .toggle-button.active"))
+            .map(button => button.textContent);
+        const selectedDietary = Array.from(document.querySelectorAll("#dietary-buttons .toggle-button.active"))
+            .map(button => button.textContent);
+    
+        // Gather values from form inputs
         for (const key in formInputs) {
             const value = formInputs[key].value.trim();
             newEntry[key] = isNaN(value) || value === "" ? value : parseFloat(value);
         }
-
+    
+        // Add allergens and dietary mentions to the entry
+        newEntry.allergens = selectedAllergens.join(", "); // Save as a comma-separated string
+        newEntry.dietary_mentions = selectedDietary.join(", "); // Save as a comma-separated string
+    
+        // Validate required fields
         if (!newEntry.name) {
             alert("Ingredient name is required.");
             return;
         }
-
+    
         try {
+            // Determine if this is an edit or a new entry
             if (editingIndex !== null) {
                 const response = await fetch(`/api/ingredients/${ingredientData[editingIndex].id}`, {
                     method: "PUT",
@@ -134,15 +170,15 @@ document.addEventListener("DOMContentLoaded", () => {
                 });
                 if (!response.ok) throw new Error("Failed to add ingredient.");
             }
-
+    
             closeModal();
-            fetchIngredients();
+            fetchIngredients(); // Refresh the table
         } catch (error) {
             console.error("Error saving entry:", error);
             alert("Failed to save the entry. Check the console for details.");
         }
     }
-
+    
     searchInput.addEventListener("input", renderTable);
     addEntryButton.addEventListener("click", () => openModal());
     saveButton.addEventListener("click", saveEntry);
