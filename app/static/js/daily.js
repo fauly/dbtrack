@@ -173,20 +173,21 @@ document.addEventListener("DOMContentLoaded", () => {
         fetchReport(selectedDate);
     });
 
-    reportContainer.addEventListener("change", (e) => {
+    reportContainer.addEventListener("input", (e) => {
         if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") {
             const field = e.target.dataset.field;
             const key = e.target.dataset.key;
             const value = e.target.type === "checkbox" ? e.target.checked : e.target.value;
             const selectedDate = dateInput.value;
     
-            // if (field === "stock_used") {
-            //     updateField(field, { [key]: value }, selectedDate);
-            // } else {
-            //     updateField(field, value, selectedDate);
-            // }
+            if (field === "temperatures") {
+                updateField(field, { [key]: value }, selectedDate);
+            } else {
+                updateField(field, value, selectedDate);
+            }
         }
-    });    
+    });
+      
 
     prevDateButton.addEventListener("click", () => {
         const currentDate = dateInput.value;
