@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ingredient Reference</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Ingredient Reference Table</h1>
+        <div class="search-section">
+            <input type="text" id="search-input" placeholder="Search ingredients...">
+        </div>
+        <table id="ingredient-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Allergens</th>
+                    <th>Cost Per Unit</th>
+                    <th>Sourcing Info</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Rows will be dynamically populated -->
+            </tbody>
+        </table>
+        <button id="add-entry-button">Add New Ingredient</button>
+    </div>
+
+    <!-- Modal for Adding/Editing Ingredients -->
+    <div id="ingredient-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2 id="modal-title">Add/Edit Ingredient</h2>
+            <div class="form-group">
+                <label for="name">Name:</label>
+                <input type="text" id="name">
+            </div>
+            <div class="form-group">
+                <label for="allergens">Allergens:</label>
+                <input type="text" id="allergens">
+            </div>
+            <div class="form-group">
+                <label for="cost">Cost Per Unit:</label>
+                <input type="number" step="0.01" id="cost">
+            </div>
+            <div class="form-group">
+                <label for="sourcing">Sourcing Info:</label>
+                <input type="text" id="sourcing">
+            </div>
+            <div class="modal-actions">
+                <button id="save-button" class="primary-button">Save</button>
+                <button id="cancel-button" class="secondary-button">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/ingredient-reference.js"></script>
+</body>
+</html>
