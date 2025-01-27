@@ -14,6 +14,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     let conversionData = [];
     let editingIndex = null;
+    let sortOrder = {};
+    let activeFilters = [];
 
     // Ensure modal is hidden by default
     modal.style.display = "none";
