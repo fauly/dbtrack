@@ -10,8 +10,9 @@ migrate = Migrate()
 def create_app():
     app = Flask(__name__)
 
-    # Configure app
-    app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///database/mobile_cafe.db"
+    BASE_DIR = os.path.abspath(os.path.dirname(__file__))  # Directory of this script
+    DATABASE_PATH = os.path.join(BASE_DIR, 'database', 'mobile_cafe.db')
+    app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{DATABASE_PATH}"
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
     # Initialize extensions
