@@ -69,14 +69,22 @@ document.addEventListener("DOMContentLoaded", () => {
         // });
         // reportContainer.appendChild(stockSection);
 
-        // Food Waste Section
-        const wasteSection = document.createElement("div");
-        wasteSection.innerHTML = `
-            <h3>Food Waste</h3>
-            <label>Amount of Food Waste (grams):</label>
-            <input type="number" data-field="food_waste" value="${data.food_waste || ""}">
-        `;
-        reportContainer.appendChild(wasteSection);
+        // // Food Waste Section
+        // const wasteSection = document.createElement("div");
+        // wasteSection.innerHTML = `
+        //     <h3>Food Waste</h3>
+        //     <label>Amount of Food Waste (grams):</label>
+        //     <input type="number" data-field="food_waste" value="${data.food_waste || ""}">
+        // `;
+        // reportContainer.appendChild(wasteSection);
+
+    // Additional notes Section
+    const notesSection = document.createElement("div");
+    notesSection.innerHTML = `
+        <h3>Additional Notes</h3>
+        <textarea data-field="additional_notes" rows="4">${data.additional_notes || ""}</textarea>
+    `;
+    reportContainer.appendChild(notesSection);
 
         // Customer Feedback Section
         const feedbackSection = document.createElement("div");

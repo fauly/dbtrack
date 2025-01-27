@@ -31,6 +31,7 @@ class DailyLog(db.Model):
 
     # New fields
     stock_used = db.Column(db.JSON, default={})  # Track stock usage
+    additional_notes = db.Column(db.Text, nullable=True) # Free-text for notes
     food_waste = db.Column(db.Integer, nullable=True)  # Food waste in grams
     customer_feedback = db.Column(db.Text, nullable=True)  # Free-text feedback
     equipment_issues = db.Column(db.Text, nullable=True)  # Free-text for equipment issues
