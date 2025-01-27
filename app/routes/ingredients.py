@@ -1,12 +1,12 @@
 from flask import Blueprint, request, jsonify
-from app.models import db, IngredientReference
+from app.models import db, Ingredients
 
 bp = Blueprint("ingredients", __name__, url_prefix="/api/ingredients")
 
 # Get all ingredient references
 @bp.route("/", methods=["GET"])
 def get_ingredients():
-    ingredients = IngredientReference.query.all()
+    ingredients = Ingredients.query.all()
     return jsonify([ingredient.to_dict() for ingredient in ingredients])
 
 # Add a new ingredient reference
@@ -17,12 +17,12 @@ def add_ingredient():
         return jsonify({"error": "Invalid input. 'name', 'allergens', 'cost_per_unit', and 'sourcing_info' are required."}), 400
 
     # Check if the ingredient already exists
-    existing_ingredient = IngredientReference.query.filter_by(name=data["name"]).first()
+    existing_ingredient = Ingredients.query.filter_by(name=data["name"]).first()
     if existing_ingredient:
         return jsonify({"error": f"Ingredient '{data['name']}' already exists."}), 400
 
     # Add to the database
-    ingredient = IngredientReference(
+    ingredient = Ingredients(
         name=data["name"],
         allergens=data["allergens"],
         cost_per_unit=data["cost_per_unit"],
@@ -36,7 +36,7 @@ def add_ingredient():
 @bp.route("/<int:ingredient_id>", methods=["PUT"])
 def update_ingredient(ingredient_id):
     data = request.json
-    ingredient = IngredientReference.query.get(ingredient_id)
+    ingredient = Ingredients.query.get(ingredient_id)
     if not ingredient:
         return jsonify({"error": f"Ingredient with id '{ingredient_id}' not found."}), 404
 
@@ -56,7 +56,7 @@ def update_ingredient(ingredient_id):
 # Delete an ingredient
 @bp.route("/<int:ingredient_id>", methods=["DELETE"])
 def delete_ingredient(ingredient_id):
-    ingredient = IngredientReference.query.get(ingredient_id)
+    ingredient = Ingredients.query.get(ingredient_id)
     if not ingredient:
         return jsonify({"error": f"Ingredient with id '{ingredient_id}' not found."}), 404
 

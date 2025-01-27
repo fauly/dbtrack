@@ -37,7 +37,7 @@ class QuantityConversion(db.Model):
             "reference_unit_amount": self.reference_unit_amount,
         }
 
-class Ingredient(db.Model):
+class Ingredients(db.Model):
     __tablename__ = "ingredients"
 
     id = db.Column(db.Integer, primary_key=True)
