@@ -50,6 +50,13 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    function handleCheckboxChange() {
+        activeFilters = Array.from(checkboxFilters.querySelectorAll("input:checked")).map(
+            checkbox => checkbox.value
+        );
+        renderTable();
+    }
+
     function renderTable() {
         tableBody.innerHTML = "";
         const filteredData = conversionData
