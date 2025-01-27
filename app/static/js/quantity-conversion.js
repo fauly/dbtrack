@@ -35,9 +35,9 @@ document.addEventListener("DOMContentLoaded", () => {
         filteredData.forEach((item, index) => {
             const row = document.createElement("tr");
             row.innerHTML = `
-                <td>${item.unit}</td>
-                <td>${item.reference_unit}</td>
-                <td>${item.value}</td>
+                <td>${item.unit_name}</td>
+                <td>${item.reference_unit_amount}</td>
+                <td>${item.reference_unit_name}</td>
                 <td>
                     <button data-index="${index}" class="edit-button">Edit</button>
                     <button data-index="${index}" class="delete-button">Delete</button>
