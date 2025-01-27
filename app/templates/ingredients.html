@@ -21,8 +21,8 @@
                     <th>Source</th>
                     <th>Lead Time</th>
                     <th>Quantity</th>
+                    <th>Unit</th>
                     <th>Cost</th>
-                    <th>Reference Cost</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -43,12 +43,27 @@
                 <input type="text" id="name">
             </div>
             <div class="form-group">
-                <label for="allergens">Allergens:</label>
-                <input type="text" id="allergens">
+                <label>Dietary Mentions:</label>
+                <div id="dietary-mentions">
+                    <label><input type="checkbox" value="vegan"> Vegan</label>
+                    <label><input type="checkbox" value="vegetarian"> Vegetarian</label>
+                    <label><input type="checkbox" value="dairy-free"> Dairy-Free</label>
+                    <label><input type="checkbox" value="gluten-free"> Gluten-Free</label>
+                    <label><input type="checkbox" value="nut-free"> Nut-Free</label>
+                    <label><input type="checkbox" value="egg-free"> Egg-Free</label>
+                </div>
             </div>
             <div class="form-group">
-                <label for="dietary-mentions">Dietary Mentions:</label>
-                <input type="text" id="dietary-mentions">
+                <label>Allergens:</label>
+                <div id="allergens">
+                    <label><input type="checkbox" value="peanuts"> Peanuts</label>
+                    <label><input type="checkbox" value="tree-nuts"> Tree Nuts</label>
+                    <label><input type="checkbox" value="milk"> Milk</label>
+                    <label><input type="checkbox" value="eggs"> Eggs</label>
+                    <label><input type="checkbox" value="fish"> Fish</label>
+                    <label><input type="checkbox" value="shellfish"> Shellfish</label>
+                    <label><input type="checkbox" value="soy"> Soy</label>
+                </div>
             </div>
             <div class="form-group">
                 <label for="source">Source:</label>
@@ -64,15 +79,13 @@
             </div>
             <div class="form-group">
                 <label for="unit">Unit:</label>
-                <input type="text" id="unit">
+                <select id="unit">
+                    <!-- Units will be dynamically populated -->
+                </select>
             </div>
             <div class="form-group">
                 <label for="cost">Cost:</label>
                 <input type="number" id="cost" step="0.01">
-            </div>
-            <div class="form-group">
-                <label for="reference-cost">Reference Cost:</label>
-                <input type="number" id="reference-cost" step="0.01">
             </div>
             <div class="modal-actions">
                 <button id="save-button" class="primary-button">Save</button>
