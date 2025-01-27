@@ -31,17 +31,26 @@
     <!-- Modal for Adding/Editing Conversions -->
     <div id="conversion-modal" class="modal">
         <div class="modal-content">
+            <span class="close-button">&times;</span>
             <h2 id="modal-title">Add/Edit Conversion</h2>
-            <label for="unit">Unit:</label>
-            <input type="text" id="unit">
-            <label for="reference-unit">Reference Unit Name:</label>
-            <input type="text" id="reference-unit">
-            <label for="value">Reference Unit Amount:</label>
-            <input type="number" id="value">
-            <button id="save-button">Save</button>
-            <button id="cancel-button">Cancel</button>
+            <div class="form-group">
+                <label for="unit">Unit:</label>
+                <input type="text" id="unit">
+            </div>
+            <div class="form-group">
+                <label for="reference-unit">Reference Unit:</label>
+                <input type="text" id="reference-unit">
+            </div>
+            <div class="form-group">
+                <label for="value">g or ml:</label>
+                <input type="number" id="value">
+            </div>
+            <div class="modal-actions">
+                <button id="save-button" class="primary-button">Save</button>
+                <button id="cancel-button" class="secondary-button">Cancel</button>
+            </div>
         </div>
-    </div>
+    </div>    
 
     <script src="/static/js/quantity-conversion.js"></script>
 </body>
