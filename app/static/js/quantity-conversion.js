@@ -29,7 +29,7 @@ document.addEventListener("DOMContentLoaded", () => {
     function renderTable() {
         tableBody.innerHTML = "";
         const filteredData = conversionData.filter(item =>
-            item.unit.toLowerCase().includes(searchInput.value.toLowerCase())
+            item.unit_name.toLowerCase().includes(searchInput.value.toLowerCase())
         );
 
         filteredData.forEach((item, index) => {
