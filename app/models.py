@@ -49,7 +49,6 @@ class Ingredients(db.Model):
     quantity = db.Column(db.Float, nullable=True)  # Available quantity
     unit = db.Column(db.String(20), nullable=True)  # Unit of measurement
     cost = db.Column(db.Float, nullable=True)  # Cost per unit
-    reference_cost = db.Column(db.Float, nullable=True)  # Optional reference cost for comparison
 
     # Relationship to NutritionalValue table
     nutritional_values = db.relationship("NutritionalValue", backref="ingredient", cascade="all, delete-orphan")
@@ -65,7 +64,6 @@ class Ingredients(db.Model):
             "quantity": self.quantity,
             "unit": self.unit,
             "cost": self.cost,
-            "reference_cost": self.reference_cost,
         }
 
 class NutritionalValue(db.Model):
