@@ -7,8 +7,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const modalTitle = document.getElementById("modal-title");
     const formInputs = {
         name: document.getElementById("name"),
-        allergens: document.getElementById("allergens"),
-        dietaryMentions: document.getElementById("dietary-mentions"),
         source: document.getElementById("source"),
         leadTime: document.getElementById("lead-time"),
         quantity: document.getElementById("quantity"),
@@ -21,16 +19,15 @@ document.addEventListener("DOMContentLoaded", () => {
     let ingredientData = [];
     let editingIndex = null;
 
-    // Ensure modal is hidden by default
     modal.style.display = "none";
 
     const allergens = ["Dairy", "Egg", "Gluten", "Peanut", "Soy", "Tree Nuts", "Shellfish"];
     const dietaryMentions = ["Vegan", "Vegetarian", "Dairy-Free", "Gluten-Free"];
-    
+
     function populateAllergensAndDietary() {
         const allergenContainer = document.getElementById("allergen-buttons");
         const dietaryContainer = document.getElementById("dietary-buttons");
-    
+
         allergens.forEach(allergen => {
             const button = document.createElement("button");
             button.className = "toggle-button";
@@ -38,7 +35,7 @@ document.addEventListener("DOMContentLoaded", () => {
             button.addEventListener("click", () => button.classList.toggle("active"));
             allergenContainer.appendChild(button);
         });
-    
+
         dietaryMentions.forEach(mention => {
             const button = document.createElement("button");
             button.className = "toggle-button";
@@ -46,15 +43,15 @@ document.addEventListener("DOMContentLoaded", () => {
             button.addEventListener("click", () => button.classList.toggle("active"));
             dietaryContainer.appendChild(button);
         });
-    }    
+    }
 
     async function populateUnits() {
         try {
             const response = await fetch("/api/quantity-conversions/");
             const units = await response.json();
             const unitList = document.getElementById("unit-list");
-    
-            unitList.innerHTML = ""; // Clear existing options
+
+            unitList.innerHTML = ""; 
             units.forEach(unit => {
                 const option = document.createElement("option");
                 option.value = unit.unit_name;
@@ -64,7 +61,6 @@ document.addEventListener("DOMContentLoaded", () => {
             console.error("Error fetching units:", error);
         }
     }
-    
 
     async function fetchIngredients() {
         try {
@@ -90,9 +86,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 <td>${item.dietary_mentions || "None"}</td>
                 <td>${item.source || "Unknown"}</td>
                 <td>${item.lead_time || "Unknown"}</td>
-                <td>${item.quantity || 0} ${item.unit || ""}</td>
+                <td>${item.quantity || 0}</td>
+                <td>${item.unit || ""}</td>
                 <td>${item.cost || 0}</td>
-                <td>${item.reference_cost || "N/A"}</td>
                 <td>
                     <button data-index="${index}" class="edit-button">Edit</button>
                     <button data-index="${index}" class="delete-button">Delete</button>
@@ -105,25 +101,34 @@ document.addEventListener("DOMContentLoaded", () => {
     function openModal(editIndex = null) {
         editingIndex = editIndex;
         modalTitle.textContent = editingIndex !== null ? "Edit Ingredient" : "Add Ingredient";
-    
+
         if (editingIndex !== null) {
             const entry = ingredientData[editingIndex];
             for (const key in formInputs) {
-                if (formInputs[key]) { // Ensure the input exists
+                if (formInputs[key]) {
                     formInputs[key].value = entry[key] || "";
                 }
             }
+
+            // Set active states for allergens and dietary mentions
+            document.querySelectorAll("#allergen-buttons .toggle-button").forEach(button => {
+                button.classList.toggle("active", (entry.allergens || "").includes(button.textContent));
+            });
+
+            document.querySelectorAll("#dietary-buttons .toggle-button").forEach(button => {
+                button.classList.toggle("active", (entry.dietary_mentions || "").includes(button.textContent));
+            });
         } else {
             for (const key in formInputs) {
-                if (formInputs[key]) { // Ensure the input exists
+                if (formInputs[key]) {
                     formInputs[key].value = "";
                 }
             }
+            document.querySelectorAll(".toggle-button").forEach(button => button.classList.remove("active"));
         }
-    
+
         modal.style.display = "block";
     }
-    
 
     function closeModal() {
         modal.style.display = "none";
@@ -132,33 +137,27 @@ document.addEventListener("DOMContentLoaded", () => {
 
     async function saveEntry() {
         const newEntry = {};
-    
-        // Get selected allergens and dietary mentions
         const selectedAllergens = Array.from(document.querySelectorAll("#allergen-buttons .toggle-button.active"))
             .map(button => button.textContent);
         const selectedDietary = Array.from(document.querySelectorAll("#dietary-buttons .toggle-button.active"))
             .map(button => button.textContent);
-    
-        // Gather values from form inputs
+
         for (const key in formInputs) {
-            if (formInputs[key]) { // Ensure the input element exists
+            if (formInputs[key]) {
                 const value = formInputs[key].value.trim();
                 newEntry[key] = isNaN(value) || value === "" ? value : parseFloat(value);
             }
         }
-    
-        // Add allergens and dietary mentions to the entry
-        newEntry.allergens = selectedAllergens.join(", "); // Save as a comma-separated string
-        newEntry.dietary_mentions = selectedDietary.join(", "); // Save as a comma-separated string
-    
-        // Validate required fields
+
+        newEntry.allergens = selectedAllergens.join(", ");
+        newEntry.dietary_mentions = selectedDietary.join(", ");
+
         if (!newEntry.name) {
             alert("Ingredient name is required.");
             return;
         }
-    
+
         try {
-            // Determine if this is an edit or a new entry
             if (editingIndex !== null) {
                 const response = await fetch(`/api/ingredients/${ingredientData[editingIndex].id}`, {
                     method: "PUT",
@@ -174,16 +173,15 @@ document.addEventListener("DOMContentLoaded", () => {
                 });
                 if (!response.ok) throw new Error("Failed to add ingredient.");
             }
-    
+
             closeModal();
-            fetchIngredients(); // Refresh the table
+            fetchIngredients();
         } catch (error) {
             console.error("Error saving entry:", error);
             alert("Failed to save the entry. Check the console for details.");
         }
     }
-    
-    
+
     searchInput.addEventListener("input", renderTable);
     addEntryButton.addEventListener("click", () => openModal());
     saveButton.addEventListener("click", saveEntry);
@@ -200,7 +198,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    populateUnits(); // Populate units when the page loads
+    populateUnits();
     populateAllergensAndDietary();
     fetchIngredients();
 });
