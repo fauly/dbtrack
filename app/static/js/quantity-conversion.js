@@ -36,8 +36,8 @@ document.addEventListener("DOMContentLoaded", () => {
             const row = document.createElement("tr");
             row.innerHTML = `
                 <td>${item.unit_name}</td>
-                <td>${item.reference_unit_amount}</td>
                 <td>${item.reference_unit_name}</td>
+                <td>${item.reference_unit_amount}</td>
                 <td>
                     <button data-index="${index}" class="edit-button">Edit</button>
                     <button data-index="${index}" class="delete-button">Delete</button>
@@ -50,10 +50,12 @@ document.addEventListener("DOMContentLoaded", () => {
     function openModal(editIndex = null) {
         editingIndex = editIndex;
         modalTitle.textContent = editingIndex !== null ? "Edit Conversion" : "Add Conversion";
-        const entry = editingIndex !== null ? conversionData[editingIndex] : { unit_name: "", reference_unit_name: "", reference_unit_amount: "" };
-        unitInput.value = entry.unit;
-        referenceUnitInput.value = entry.reference_unit;
-        valueInput.value = entry.value;
+        const entry = editingIndex !== null
+            ? conversionData[editingIndex]
+            : { unit_name: "", reference_unit_name: "", reference_unit_amount: "" };
+        unitInput.value = entry.unit_name;
+        referenceUnitInput.value = entry.reference_unit_name;
+        valueInput.value = entry.reference_unit_amount;
         modal.style.display = "block";
     }
 
@@ -68,22 +70,25 @@ document.addEventListener("DOMContentLoaded", () => {
             reference_unit_name: referenceUnitInput.value.trim(),
             reference_unit_amount: parseFloat(valueInput.value),
         };
-    
+
         if (!newEntry.unit_name || !newEntry.reference_unit_name || isNaN(newEntry.reference_unit_amount)) {
-            alert("All fields are required and 'value' must be a valid number.");
+            alert("All fields are required and 'reference unit amount' must be a valid number.");
             return;
         }
-    
+
         console.log("Saving entry:", newEntry);
-    
+
         try {
             if (editingIndex !== null) {
                 // Update existing entry
-                const response = await fetch(`/api/quantity-conversions/${conversionData[editingIndex].unit_name}`, {
-                    method: "PUT",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(newEntry),
-                });
+                const response = await fetch(
+                    `/api/quantity-conversions/${conversionData[editingIndex].unit_name}`,
+                    {
+                        method: "PUT",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(newEntry),
+                    }
+                );
                 if (!response.ok) throw new Error("Failed to update conversion.");
             } else {
                 // Add new entry
@@ -94,7 +99,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 });
                 if (!response.ok) throw new Error("Failed to add conversion.");
             }
-    
+
             closeModal();
             fetchConversions();
         } catch (error) {
@@ -102,7 +107,7 @@ document.addEventListener("DOMContentLoaded", () => {
             alert("Failed to save the entry. Check the console for details.");
         }
     }
-    
+
     searchInput.addEventListener("input", renderTable);
     addEntryButton.addEventListener("click", () => openModal());
     saveButton.addEventListener("click", saveEntry);
@@ -111,8 +116,8 @@ document.addEventListener("DOMContentLoaded", () => {
         if (e.target.classList.contains("edit-button")) {
             openModal(parseInt(e.target.dataset.index));
         } else if (e.target.classList.contains("delete-button")) {
-            const unit = conversionData[parseInt(e.target.dataset.index)].unit;
-            fetch(`/api/quantity-conversions/${unit}`, { method: "DELETE" })
+            const unitName = conversionData[parseInt(e.target.dataset.index)].unit_name;
+            fetch(`/api/quantity-conversions/${unitName}`, { method: "DELETE" })
                 .then(() => fetchConversions())
                 .catch(error => console.error("Error deleting entry:", error));
         }
