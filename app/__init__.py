@@ -29,4 +29,8 @@ def create_app():
     from app.routes.daily_report import bp as daily_report_bp
     app.register_blueprint(daily_report_bp, url_prefix="/api")
 
+
+    from app.routes.quantity_conversions import bp as conversions_bp
+    app.register_blueprint(conversions_bp)
+
     return app
