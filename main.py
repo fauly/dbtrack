@@ -2,6 +2,8 @@ from flask import Flask, render_template, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime, date
 import os
+from flask_migrate import Migrate
+
 
 app = Flask(__name__)
 
@@ -10,6 +12,8 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{os.path.join(BASE_DIR, 'database', 'mobile_cafe.db')}"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db = SQLAlchemy(app)
+
+migrate = Migrate(app, db)
 
 # Database Model
 class DailyLog(db.Model):
