@@ -141,23 +141,27 @@ document.addEventListener("DOMContentLoaded", () => {
             .map(button => button.textContent);
         const selectedDietary = Array.from(document.querySelectorAll("#dietary-buttons .toggle-button.active"))
             .map(button => button.textContent);
-
+    
+        // Gather values from form inputs
         for (const key in formInputs) {
             if (formInputs[key]) {
                 const value = formInputs[key].value.trim();
                 newEntry[key] = isNaN(value) || value === "" ? value : parseFloat(value);
             }
         }
-
-        newEntry.allergens = selectedAllergens.join(", ");
-        newEntry.dietary_mentions = selectedDietary.join(", ");
-
-        if (!newEntry.name) {
-            alert("Ingredient name is required.");
+    
+        // Add allergens and dietary mentions to the entry
+        newEntry.allergens = selectedAllergens.join(", "); // Save as a comma-separated string
+        newEntry.dietary_mentions = selectedDietary.join(", "); // Save as a comma-separated string
+    
+        // Validate required fields based on your model
+        if (!newEntry.name || !newEntry.cost) {
+            alert("Please provide all required fields: name and cost.");
             return;
         }
-
+    
         try {
+            // Check if editing an existing entry or creating a new one
             if (editingIndex !== null) {
                 const response = await fetch(`/api/ingredients/${ingredientData[editingIndex].id}`, {
                     method: "PUT",
@@ -173,14 +177,15 @@ document.addEventListener("DOMContentLoaded", () => {
                 });
                 if (!response.ok) throw new Error("Failed to add ingredient.");
             }
-
+    
             closeModal();
-            fetchIngredients();
+            fetchIngredients(); // Refresh the table
         } catch (error) {
             console.error("Error saving entry:", error);
             alert("Failed to save the entry. Check the console for details.");
         }
     }
+    
 
     searchInput.addEventListener("input", renderTable);
     addEntryButton.addEventListener("click", () => openModal());
