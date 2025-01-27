@@ -11,7 +11,7 @@ def create_app():
     app = Flask(__name__)
 
     # Configure app
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///your_database.db'
+    app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///database/mobile_cafe.db"
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
     # Initialize extensions
