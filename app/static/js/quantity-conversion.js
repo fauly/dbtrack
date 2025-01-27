@@ -3,6 +3,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const searchInput = document.getElementById("search-input");
     const addEntryButton = document.getElementById("add-entry-button");
     const modal = document.getElementById("conversion-modal");
+    const closeButton = document.querySelector(".close-button");
     const modalTitle = document.getElementById("modal-title");
     const unitInput = document.getElementById("unit");
     const referenceUnitInput = document.getElementById("reference-unit");
@@ -59,6 +60,13 @@ document.addEventListener("DOMContentLoaded", () => {
         modal.style.display = "block";
     }
 
+    // Close modal when clicking outside the content
+    modal.addEventListener("click", (e) => {
+        if (e.target === modal) {
+            closeModal();
+        }
+    });
+
     function closeModal() {
         modal.style.display = "none";
         editingIndex = null;
@@ -111,6 +119,7 @@ document.addEventListener("DOMContentLoaded", () => {
     searchInput.addEventListener("input", renderTable);
     addEntryButton.addEventListener("click", () => openModal());
     saveButton.addEventListener("click", saveEntry);
+    closeButton.addEventListener("click", closeModal);
     cancelButton.addEventListener("click", closeModal);
     tableBody.addEventListener("click", (e) => {
         if (e.target.classList.contains("edit-button")) {
