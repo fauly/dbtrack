@@ -1,166 +1,163 @@
 document.addEventListener("DOMContentLoaded", () => {
-    const tableBody = document.querySelector("#recipe-table tbody");
-    const searchInput = document.getElementById("search-input");
-    const addRecipeButton = document.getElementById("add-recipe-button");
     const modal = document.getElementById("recipe-modal");
     const closeButton = document.querySelector(".close-button");
-    const modalTitle = document.getElementById("modal-title");
-    const formInputs = {
-        name: document.getElementById("recipe-name"),
-        servingsType: document.getElementById("servings-type"),
-        servingsCount: document.getElementById("servings-count"),
-        prepTime: document.getElementById("prep-time"),
-        cookTime: document.getElementById("cook-time"),
-        totalTime: document.getElementById("total-time"),
-        ingredients: document.getElementById("ingredients"),
-        steps: document.getElementById("steps"),
-        notes: document.getElementById("notes"),
-    };
     const saveButton = document.getElementById("save-button");
     const cancelButton = document.getElementById("cancel-button");
-    const tagButtonsContainer = document.getElementById("tag-buttons");
+    const tagInput = document.getElementById("tags-input");
+    const servingsTypeInput = document.getElementById("servings-type");
+    const ingredientsTable = document.getElementById("ingredients-table tbody");
+    const stepsContainer = document.getElementById("steps-container");
+    let tags = ["Vegan", "Vegetarian", "Gluten-Free", "Dairy-Free"];
+    let servingsTypes = ["Cake", "Muffin", "Loaf", "Cookies", "Pastries"];
+    let allIngredients = [];
+    let allRecipes = [];
+    let editingRecipe = null;
 
-    let recipeData = [];
-    let editingIndex = null;
-
-    const tags = ["Vegan", "Vegetarian", "Gluten-Free", "Dairy-Free"];
-
-    // Ensure modal is hidden by default
+    // Modal Display Controls
     modal.style.display = "none";
 
-    function populateTags() {
-        tags.forEach(tag => {
-            const button = document.createElement("button");
-            button.className = "toggle-button";
-            button.textContent = tag;
-            button.addEventListener("click", () => button.classList.toggle("active"));
-            tagButtonsContainer.appendChild(button);
-        });
-    }
-
-    async function fetchRecipes() {
-        try {
-            const response = await fetch("/api/recipes/");
-            recipeData = await response.json();
-            renderTable();
-        } catch (error) {
-            console.error("Error fetching recipes:", error);
-        }
-    }
-
-    function renderTable() {
-        tableBody.innerHTML = "";
-        const filteredData = recipeData.filter(recipe =>
-            recipe.name.toLowerCase().includes(searchInput.value.toLowerCase())
-        );
-
-        filteredData.forEach((recipe, index) => {
-            const row = document.createElement("tr");
-            row.innerHTML = `
-                <td>${recipe.name}</td>
-                <td>${recipe.servings_type}</td>
-                <td>${recipe.servings_count}</td>
-                <td>${recipe.tags || "None"}</td>
-                <td>${recipe.prep_time || "N/A"}</td>
-                <td>${recipe.cook_time || "N/A"}</td>
-                <td>${recipe.total_time || "N/A"}</td>
-                <td>
-                    <button data-index="${index}" class="edit-button">Edit</button>
-                    <button data-index="${index}" class="delete-button">Delete</button>
-                </td>
-            `;
-            tableBody.appendChild(row);
-        });
-    }
-
-    function openModal(editIndex = null) {
-        editingIndex = editIndex;
-        modalTitle.textContent = editIndex !== null ? "Edit Recipe" : "Add Recipe";
-
-        // Populate the modal with data if editing
-        if (editIndex !== null) {
-            const recipe = recipeData[editIndex];
-            for (const key in formInputs) {
-                formInputs[key].value = recipe[key] || "";
-            }
-            document.querySelectorAll("#tag-buttons .toggle-button").forEach(button => {
-                button.classList.toggle("active", recipe.tags.includes(button.textContent));
-            });
-        } else {
-            // Clear the form for adding a new recipe
-            for (const key in formInputs) {
-                formInputs[key].value = "";
-            }
-            document.querySelectorAll("#tag-buttons .toggle-button").forEach(button => {
-                button.classList.remove("active");
-            });
-        }
-
+    function openModal(editRecipe = null) {
+        editingRecipe = editRecipe;
         modal.style.display = "block";
+        resetModal(); // Clear and prepare modal for edit/add
     }
 
     function closeModal() {
         modal.style.display = "none";
-        editingIndex = null;
     }
 
-    async function saveRecipe() {
-        const newRecipe = {};
-        const selectedTags = Array.from(document.querySelectorAll("#tag-buttons .toggle-button.active"))
-            .map(button => button.textContent);
+    // Tag Management
+    function initializeTagInput() {
+        const tagify = new Tagify(tagInput, {
+            whitelist: tags,
+            enforceWhitelist: false,
+            callbacks: {
+                add: (event) => {
+                    const newTag = event.detail.data.value;
+                    if (!tags.includes(newTag)) tags.push(newTag); // Add to global tags
+                },
+            },
+        });
+    }
 
-        for (const key in formInputs) {
-            const value = formInputs[key].value.trim();
-            newRecipe[key] = isNaN(value) || value === "" ? value : parseFloat(value);
-        }
-        newRecipe.tags = selectedTags.join(", "); // Save tags as a comma-separated string
+    // Servings Type Management
+    function initializeServingsTypeInput() {
+        new Tagify(servingsTypeInput, {
+            whitelist: servingsTypes,
+            enforceWhitelist: false,
+            callbacks: {
+                add: (event) => {
+                    const newType = event.detail.data.value;
+                    if (!servingsTypes.includes(newType)) servingsTypes.push(newType); // Add to global list
+                },
+            },
+        });
+    }
 
-        if (!newRecipe.name) {
-            alert("Recipe name is required.");
-            return;
-        }
-
+    // Fetch Ingredients and Recipes
+    async function fetchAllData() {
         try {
-            if (editingIndex !== null) {
-                const response = await fetch(`/api/recipes/${recipeData[editingIndex].id}`, {
-                    method: "PUT",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(newRecipe),
-                });
-                if (!response.ok) throw new Error("Failed to update recipe.");
-            } else {
-                const response = await fetch("/api/recipes/", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(newRecipe),
-                });
-                if (!response.ok) throw new Error("Failed to add recipe.");
-            }
-
-            closeModal();
-            fetchRecipes();
+            const [ingredientsResponse, recipesResponse] = await Promise.all([
+                fetch("/api/ingredients/"),
+                fetch("/api/recipes/"),
+            ]);
+            allIngredients = await ingredientsResponse.json();
+            allRecipes = await recipesResponse.json();
         } catch (error) {
-            console.error("Error saving recipe:", error);
-            alert("Failed to save the recipe. Check the console for details.");
+            console.error("Error fetching ingredients/recipes:", error);
         }
     }
 
-    searchInput.addEventListener("input", renderTable);
-    addRecipeButton.addEventListener("click", () => openModal());
-    saveButton.addEventListener("click", saveRecipe);
+    // Ingredients Table
+    function initializeIngredientsTable() {
+        ingredientsTable.innerHTML = ""; // Clear table
+        addIngredientRow(); // Start with one empty row
+    }
+
+    function addIngredientRow() {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+            <td>
+                <input type="text" class="ingredient-name" list="ingredients-datalist" placeholder="Search ingredients/recipes">
+                <datalist id="ingredients-datalist">
+                    ${[...allIngredients, ...allRecipes].map(
+                        (item) => `<option value="${item.name}">${item.name}</option>`
+                    ).join("")}
+                </datalist>
+            </td>
+            <td><input type="number" class="ingredient-quantity" placeholder="Quantity"></td>
+            <td>
+                <input type="text" class="ingredient-unit" list="units-datalist">
+                <datalist id="units-datalist">
+                    ${allIngredients.map((ingredient) => `<option value="${ingredient.unit}">`).join("")}
+                </datalist>
+            </td>
+        `;
+        row.querySelector(".ingredient-name").addEventListener("input", handleIngredientInput);
+        ingredientsTable.appendChild(row);
+    }
+
+    function handleIngredientInput(event) {
+        const value = event.target.value;
+        const ingredientOrRecipe = [...allIngredients, ...allRecipes].find((item) => item.name === value);
+        if (ingredientOrRecipe) {
+            // Add logic for handling recipes (e.g., scaling)
+        } else {
+            // Handle invalid input if needed
+        }
+    }
+
+    // Steps Section
+    function initializeStepsContainer() {
+        stepsContainer.innerHTML = ""; // Clear steps
+        addStepSection("General");
+    }
+
+    function addStepSection(title) {
+        const section = document.createElement("div");
+        section.className = "step-section";
+        section.innerHTML = `
+            <h3>${title}</h3>
+            <div class="steps">
+                <div class="step-row">
+                    <textarea class="step-instruction" placeholder="Step instruction"></textarea>
+                    <input type="text" class="step-ingredient" placeholder="Ingredient (optional)" list="ingredients-datalist">
+                    <input type="number" class="step-quantity" placeholder="Qty">
+                    <input type="text" class="step-unit" placeholder="Unit" list="units-datalist">
+                </div>
+            </div>
+            <button class="add-step-button">+ Add Step</button>
+        `;
+        section.querySelector(".add-step-button").addEventListener("click", () => addStepRow(section));
+        stepsContainer.appendChild(section);
+    }
+
+    function addStepRow(section) {
+        const stepsDiv = section.querySelector(".steps");
+        const row = document.createElement("div");
+        row.className = "step-row";
+        row.innerHTML = `
+            <textarea class="step-instruction" placeholder="Step instruction"></textarea>
+            <input type="text" class="step-ingredient" placeholder="Ingredient (optional)" list="ingredients-datalist">
+            <input type="number" class="step-quantity" placeholder="Qty">
+            <input type="text" class="step-unit" placeholder="Unit" list="units-datalist">
+        `;
+        stepsDiv.appendChild(row);
+    }
+
+    // Modal Reset
+    function resetModal() {
+        initializeIngredientsTable();
+        initializeStepsContainer();
+        initializeTagInput();
+        initializeServingsTypeInput();
+    }
+
     closeButton.addEventListener("click", closeModal);
     cancelButton.addEventListener("click", closeModal);
-    tableBody.addEventListener("click", (e) => {
-        if (e.target.classList.contains("edit-button")) {
-            openModal(parseInt(e.target.dataset.index));
-        } else if (e.target.classList.contains("delete-button")) {
-            const id = recipeData[parseInt(e.target.dataset.index)].id;
-            fetch(`/api/recipes/${id}`, { method: "DELETE" })
-                .then(() => fetchRecipes())
-                .catch(error => console.error("Error deleting recipe:", error));
-        }
-    });
 
-    populateTags();
-    fetchRecipes();
+    fetchAllData().then(() => {
+        initializeTagInput();
+        initializeServingsTypeInput();
+    });
 });
