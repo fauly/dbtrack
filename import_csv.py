@@ -1,28 +1,47 @@
 import csv
-from app import create_app, db
-from app.models import QuantityConversion
+from app.models import db, Ingredients
+from app import create_app
 
+# Initialize the Flask app context
 app = create_app()
-with app.app_context():
-    csv_file_path = "data/quantity_conversions.csv"
+app.app_context().push()
 
-    with open(csv_file_path, "r") as file:
-        reader = csv.DictReader(file)
+# Path to the CSV file
+csv_file_path = "data/ingredients.csv"
 
-        for row in reader:
-            # Check if the unit already exists
-            existing_conversion = QuantityConversion.query.filter_by(unit_name=row["unit_name"]).first()
-            if existing_conversion:
-                print(f"Skipping existing unit: {row['unit_name']}")
-                continue
+def import_ingredients():
+    try:
+        with open(csv_file_path, newline='', encoding='utf-8') as csvfile:
+            reader = csv.DictReader(csvfile)
 
-            # Create and add the conversion
-            conversion = QuantityConversion(
-                unit_name=row["unit_name"],
-                reference_unit_amount=float(row["reference_unit_amount"]),
-                reference_unit_name=row["reference_unit_name"],
-            )
-            db.session.add(conversion)
+            for row in reader:
+                # Check if the ingredient already exists
+                existing_ingredient = Ingredients.query.filter_by(name=row["ingredient"]).first()
+                if existing_ingredient:
+                    print(f"Ingredient '{row['ingredient']}' already exists. Skipping...")
+                    continue
 
+                # Create and add the ingredient
+                ingredient = Ingredients(
+                    name=row["ingredient"].strip(),
+                    allergens=row["allergens"].strip() if row["allergens"] else None,
+                    dietary_mentions=row["dietary_mentions"].strip() if row["dietary_mentions"] else None,
+                    source=row["source"].strip() if row["source"] else None,
+                    lead_time=row["lead_time"].strip() if row["lead_time"] else None,
+                    quantity=float(row["quantity"]) if row["quantity"] else None,
+                    unit=row["unit"].strip() if row["unit"] else None,
+                    cost=float(row["cost"]) if row["cost"] else 0.0,  # Default cost to 0.0 if missing
+                )
+
+                db.session.add(ingredient)
+                print(f"Added ingredient: {ingredient.name}")
+
+        # Commit the changes
         db.session.commit()
-        print("CSV data imported successfully!")
+        print("Import complete!")
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error during import: {e}")
+
+# Run the import function
+import_ingredients()
