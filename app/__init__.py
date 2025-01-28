@@ -43,4 +43,7 @@ def create_app():
     from app.routes.ingredients import bp as ingredients_bp
     app.register_blueprint(ingredients_bp)
 
+    from app.routes.recipes import bp as recipes_bp
+    app.register_blueprint(recipes_bp)
+
     return app

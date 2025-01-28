@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recipe Book</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Recipe Book</h1>
+        <div class="search-section">
+            <input type="text" id="search-input" placeholder="Search recipes...">
+        </div>
+        <table id="recipe-table">
+            <thead>
+                <tr>
+                    <th>Recipe Name</th>
+                    <th>Servings Type</th>
+                    <th>Servings Count</th>
+                    <th>Tags</th>
+                    <th>Prep Time</th>
+                    <th>Cook Time</th>
+                    <th>Total Time</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Rows dynamically populated -->
+            </tbody>
+        </table>
+        <button id="add-recipe-button" class="primary-button">Add New Recipe</button>
+    </div>
+
+    <!-- Modal for Adding/Editing Recipes -->
+    <div id="recipe-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2 id="modal-title">Add/Edit Recipe</h2>
+            <div class="form-group">
+                <label for="recipe-name">Name:</label>
+                <input type="text" id="recipe-name">
+            </div>
+            <div class="form-group">
+                <label for="servings-type">Servings Type:</label>
+                <select id="servings-type">
+                    <option value="cake">Cake</option>
+                    <option value="muffin">Muffin</option>
+                    <option value="loaf">Loaf</option>
+                    <option value="cookies">Cookies</option>
+                    <option value="pastries">Pastries</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="servings-count">Servings Count:</label>
+                <input type="number" id="servings-count" min="1">
+            </div>
+            <div class="form-group">
+                <label>Tags:</label>
+                <div id="tag-buttons" class="grid-container">
+                    <!-- Tag buttons dynamically populated -->
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="prep-time">Prep Time:</label>
+                <input type="text" id="prep-time">
+            </div>
+            <div class="form-group">
+                <label for="cook-time">Cook Time:</label>
+                <input type="text" id="cook-time">
+            </div>
+            <div class="form-group">
+                <label for="total-time">Total Time:</label>
+                <input type="text" id="total-time">
+            </div>
+            <div class="form-group">
+                <label for="ingredients">Ingredients:</label>
+                <textarea id="ingredients" placeholder='Example: [{"type": "ingredient", "id": 1, "quantity": 200, "unit": "g"}]'></textarea>
+            </div>
+            <div class="form-group">
+                <label for="steps">Steps:</label>
+                <textarea id="steps" placeholder='Example: [{"step_number": 1, "description": "Mix ingredients."}]'></textarea>
+            </div>
+            <div class="form-group">
+                <label for="notes">Notes:</label>
+                <textarea id="notes" placeholder="Additional notes or tips for the recipe."></textarea>
+            </div>
+            <div class="modal-actions">
+                <button id="save-button" class="primary-button">Save</button>
+                <button id="cancel-button" class="secondary-button">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/recipes.js"></script>
+</body>
+</html>

@@ -89,3 +89,40 @@ class NutritionalValue(db.Model):
             "sugar": self.sugar,
             "other_nutrients": self.other_nutrients,
         }
+
+from app.models import db
+
+class Recipe(db.Model):
+    __tablename__ = "recipes"
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(255), nullable=False, unique=True)  # Recipe name
+    servings_type = db.Column(db.String(50), nullable=False)  # e.g., "cake", "muffin", "loaf"
+    servings_count = db.Column(db.Integer, nullable=False, default=1)  # Default serving count
+    ingredients = db.Column(db.JSON, nullable=False)  # JSON to store ingredient list or sub-recipe links
+    steps = db.Column(db.JSON, nullable=False)  # JSON to store step-by-step instructions
+    tags = db.Column(db.String(255), nullable=True)  # Comma-separated tags like "Vegan, Gluten-Free"
+    notes = db.Column(db.Text, nullable=True)  # Optional notes about the recipe
+    prep_time = db.Column(db.String(50), nullable=True)  # e.g., "15 mins"
+    cook_time = db.Column(db.String(50), nullable=True)  # e.g., "30 mins"
+    total_time = db.Column(db.String(50), nullable=True)  # e.g., "45 mins"
+    created_at = db.Column(db.DateTime, server_default=db.func.now())  # Creation timestamp
+    updated_at = db.Column(db.DateTime, onupdate=db.func.now())  # Update timestamp
+
+    def to_dict(self):
+        """Convert the recipe to a dictionary."""
+        return {
+            "id": self.id,
+            "name": self.name,
+            "servings_type": self.servings_type,
+            "servings_count": self.servings_count,
+            "ingredients": self.ingredients,
+            "steps": self.steps,
+            "tags": self.tags.split(", ") if self.tags else [],
+            "notes": self.notes,
+            "prep_time": self.prep_time,
+            "cook_time": self.cook_time,
+            "total_time": self.total_time,
+            "created_at": self.created_at,
+            "updated_at": self.updated_at,
+        }
