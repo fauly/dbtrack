@@ -1,13 +1,23 @@
 from flask import Blueprint, request, jsonify
-from app.models import db, Ingredients
+from app.models import db, Ingredient
 
 bp = Blueprint("ingredients", __name__, url_prefix="/api/ingredients")
 
 # Get all ingredient references
 @bp.route("/", methods=["GET"])
 def get_ingredients():
-    ingredients = Ingredients.query.all()
+    ingredients = Ingredient.query.all()
     return jsonify([ingredient.to_dict() for ingredient in ingredients])
+
+# Search for ingredients
+@bp.route("/search", methods=["GET"])
+def search_ingredients():
+    query = request.args.get("query", "").strip()
+    if not query:
+        return jsonify([])
+
+    ingredients = Ingredient.query.filter(Ingredient.name.ilike(f"%{query}%")).limit(5).all()
+    return jsonify([ingredient.to_dict() for ingredient in ingredients]) if ingredients else jsonify([])
 
 # Add a new ingredient reference
 @bp.route("/", methods=["POST"])
@@ -17,19 +27,19 @@ def add_ingredient():
         return jsonify({"error": "Invalid input. 'name', 'allergens', 'cost', and 'source' are required."}), 400
 
     # Check if the ingredient already exists
-    existing_ingredient = Ingredients.query.filter_by(name=data["name"]).first()
+    existing_ingredient = Ingredient.query.filter_by(name=data["name"]).first()
     if existing_ingredient:
         return jsonify({"error": f"Ingredient '{data['name']}' already exists."}), 400
 
     # Add to the database
-    ingredient = Ingredients(
+    ingredient = Ingredient(
         name=data["name"],
         allergens=data["allergens"],
-        dietary_mentions=data["dietary_mentions"],
+        dietary_mentions=data.get("dietary_mentions", ""),
         source=data["source"],
-        lead_time=data["lead_time"],
-        quantity=data["quantity"],
-        unit=data["unit"],
+        lead_time=data.get("lead_time", ""),
+        quantity=data.get("quantity", 0),
+        unit=data.get("unit", ""),
         cost=data["cost"]
     )
     db.session.add(ingredient)
@@ -40,7 +50,7 @@ def add_ingredient():
 @bp.route("/<int:ingredient_id>", methods=["PUT"])
 def update_ingredient(ingredient_id):
     data = request.json
-    ingredient = Ingredients.query.get(ingredient_id)
+    ingredient = Ingredient.query.get(ingredient_id)
     if not ingredient:
         return jsonify({"error": f"Ingredient with id '{ingredient_id}' not found."}), 404
 
@@ -68,7 +78,7 @@ def update_ingredient(ingredient_id):
 # Delete an ingredient
 @bp.route("/<int:ingredient_id>", methods=["DELETE"])
 def delete_ingredient(ingredient_id):
-    ingredient = Ingredients.query.get(ingredient_id)
+    ingredient = Ingredient.query.get(ingredient_id)
     if not ingredient:
         return jsonify({"error": f"Ingredient with id '{ingredient_id}' not found."}), 404
 
