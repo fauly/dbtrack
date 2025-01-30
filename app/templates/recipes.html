@@ -15,7 +15,7 @@
         <table id="recipe-table">
             <thead>
                 <tr>
-                    <th>Recipe Name</th>
+                    <th>Name</th>
                     <th>Servings Type</th>
                     <th>Servings Count</th>
                     <th>Tags</th>
@@ -23,18 +23,18 @@
                 </tr>
             </thead>
             <tbody>
-                <!-- Rows will be dynamically populated -->
+                <!-- Dynamically populated rows -->
             </tbody>
         </table>
         <button id="add-entry-button" class="primary-button">Add New Recipe</button>
     </div>
 
-    <!-- Modal for Adding/Editing Recipes -->
+    <!-- Fullscreen Modal for Adding/Editing Recipes -->
     <div id="recipe-modal" class="modal">
-        <div class="modal-content">
+        <div class="modal-content fullscreen">
             <span class="close-button">&times;</span>
             <h2 id="modal-title">Add/Edit Recipe</h2>
-
+            
             <div class="form-group">
                 <label for="name">Recipe Name:</label>
                 <input type="text" id="name">
@@ -42,47 +42,41 @@
 
             <div class="form-group">
                 <label for="servings-type">Servings Type:</label>
-                <input type="text" id="servings-type" list="servings-list" placeholder="Type or select a serving type">
-                <datalist id="servings-list">
-                    <!-- Servings type options dynamically populated -->
-                </datalist>
+                <input type="text" id="servings-type" placeholder="e.g., Cake, Muffin">
+                <ul id="servings-suggestions" class="suggestions-list"></ul>
             </div>
 
             <div class="form-group">
                 <label for="servings-count">Servings Count:</label>
-                <input type="number" id="servings-count" step="1" min="1">
+                <input type="number" id="servings-count" min="1">
             </div>
 
             <div class="form-group">
                 <label>Tags:</label>
-                <input type="text" id="tag-input" placeholder="Type a tag and press enter">
+                <input type="text" id="tag-input" placeholder="Type a tag...">
+                <ul id="tag-suggestions" class="suggestions-list"></ul>
                 <div id="tag-container"></div>
             </div>
 
-            <div class="form-group">
-                <label>Ingredients:</label>
-                <table id="ingredient-table">
-                    <thead>
-                        <tr>
-                            <th>Ingredient</th>
-                            <th>Quantity</th>
-                            <th>Unit</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- Rows dynamically populated -->
-                    </tbody>
-                </table>
-                <button id="add-ingredient-button" class="secondary-button">+ Add Ingredient</button>
-            </div>
+            <h3>Ingredients</h3>
+            <table id="ingredient-table">
+                <thead>
+                    <tr>
+                        <th>Ingredient</th>
+                        <th>Quantity</th>
+                        <th>Unit</th>
+                        <th>Note</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Dynamically populated ingredients -->
+                </tbody>
+            </table>
 
-            <div class="form-group">
-                <label>Steps:</label>
-                <div id="step-container">
-                    <!-- Steps dynamically populated -->
-                </div>
-                <button id="add-step-button" class="secondary-button">+ Add Step</button>
+            <h3>Steps</h3>
+            <div id="step-container">
+                <!-- Steps will be dynamically added here -->
             </div>
 
             <div class="modal-actions">
