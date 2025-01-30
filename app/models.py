@@ -90,7 +90,18 @@ class NutritionalValue(db.Model):
             "other_nutrients": self.other_nutrients,
         }
 
-from app.models import db
+class Tag(db.Model):
+    __tablename__ = 'tags'
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), nullable=False, unique=True)
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "name": self.name
+        }
+
 
 class Recipe(db.Model):
     __tablename__ = "recipes"
@@ -101,7 +112,7 @@ class Recipe(db.Model):
     servings_count = db.Column(db.Integer, nullable=False, default=1)  # Default serving count
     ingredients = db.Column(db.JSON, nullable=False)  # JSON to store ingredient list or sub-recipe links
     steps = db.Column(db.JSON, nullable=False)  # JSON to store step-by-step instructions
-    tags = db.Column(db.String(255), nullable=True)  # Comma-separated tags like "Vegan, Gluten-Free"
+    tags = db.relationship('Tag', secondary='recipe_tags', backref=db.backref('recipes', lazy='dynamic'))
     notes = db.Column(db.Text, nullable=True)  # Optional notes about the recipe
     prep_time = db.Column(db.String(50), nullable=True)  # e.g., "15 mins"
     cook_time = db.Column(db.String(50), nullable=True)  # e.g., "30 mins"
@@ -110,7 +121,6 @@ class Recipe(db.Model):
     updated_at = db.Column(db.DateTime, onupdate=db.func.now())  # Update timestamp
 
     def to_dict(self):
-        """Convert the recipe to a dictionary."""
         return {
             "id": self.id,
             "name": self.name,
@@ -118,7 +128,7 @@ class Recipe(db.Model):
             "servings_count": self.servings_count,
             "ingredients": self.ingredients,
             "steps": self.steps,
-            "tags": self.tags.split(", ") if self.tags else [],
+            "tags": [tag.to_dict() for tag in self.tags],
             "notes": self.notes,
             "prep_time": self.prep_time,
             "cook_time": self.cook_time,
@@ -126,3 +136,9 @@ class Recipe(db.Model):
             "created_at": self.created_at,
             "updated_at": self.updated_at,
         }
+    
+recipe_tags = db.Table(
+    'recipe_tags',
+    db.Column('recipe_id', db.Integer, db.ForeignKey('recipes.id'), primary_key=True),
+    db.Column('tag_id', db.Integer, db.ForeignKey('tags.id'), primary_key=True)
+)

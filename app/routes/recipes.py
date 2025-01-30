@@ -13,17 +13,31 @@ def get_recipes():
 @bp.route("/", methods=["POST"])
 def add_recipe():
     data = request.json
-    if not data or "name" not in data or "servings" not in data or "ingredients" not in data or "steps" not in data:
-        return jsonify({"error": "Invalid input. 'name', 'servings', 'ingredients', and 'steps' are required."}), 400
+    if not data or "name" not in data or "servings_type" not in data or "servings_count" not in data:
+        return jsonify({"error": "Invalid input. 'name', 'servings_type', and 'servings_count' are required."}), 400
 
-    # Create a new recipe
+    # Process tags
+    tag_names = data.get("tags", [])
+    tags = []
+    for name in tag_names:
+        tag = Tag.query.filter_by(name=name).first()
+        if not tag:
+            tag = Tag(name=name)
+            db.session.add(tag)
+        tags.append(tag)
+
+    # Create and save the recipe
     recipe = Recipe(
         name=data["name"],
-        servings=data["servings"],
-        servings_type=data.get("servings_type", ""),
-        tags=data.get("tags", ""),
-        ingredients=data["ingredients"],
-        steps=data["steps"]
+        servings_type=data["servings_type"],
+        servings_count=data["servings_count"],
+        ingredients=data.get("ingredients", []),
+        steps=data.get("steps", []),
+        tags=tags,
+        notes=data.get("notes", ""),
+        prep_time=data.get("prep_time", ""),
+        cook_time=data.get("cook_time", ""),
+        total_time=data.get("total_time", ""),
     )
     db.session.add(recipe)
     db.session.commit()
@@ -38,12 +52,36 @@ def update_recipe(recipe_id):
         return jsonify({"error": f"Recipe with id '{recipe_id}' not found."}), 404
 
     # Update fields
-    recipe.name = data.get("name", recipe.name)
-    recipe.servings = data.get("servings", recipe.servings)
-    recipe.servings_type = data.get("servings_type", recipe.servings_type)
-    recipe.tags = data.get("tags", recipe.tags)
-    recipe.ingredients = data.get("ingredients", recipe.ingredients)
-    recipe.steps = data.get("steps", recipe.steps)
+    if "name" in data:
+        recipe.name = data["name"]
+    if "servings_type" in data:
+        recipe.servings_type = data["servings_type"]
+    if "servings_count" in data:
+        recipe.servings_count = data["servings_count"]
+    if "ingredients" in data:
+        recipe.ingredients = data["ingredients"]
+    if "steps" in data:
+        recipe.steps = data["steps"]
+    if "notes" in data:
+        recipe.notes = data["notes"]
+    if "prep_time" in data:
+        recipe.prep_time = data["prep_time"]
+    if "cook_time" in data:
+        recipe.cook_time = data["cook_time"]
+    if "total_time" in data:
+        recipe.total_time = data["total_time"]
+
+    # Update tags
+    if "tags" in data:
+        tag_names = data["tags"]
+        tags = []
+        for name in tag_names:
+            tag = Tag.query.filter_by(name=name).first()
+            if not tag:
+                tag = Tag(name=name)
+                db.session.add(tag)
+            tags.append(tag)
+        recipe.tags = tags
 
     db.session.commit()
     return jsonify({"message": "Recipe updated successfully!", "data": recipe.to_dict()}), 200
