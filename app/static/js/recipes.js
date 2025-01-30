@@ -2,6 +2,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const modal = document.getElementById("recipe-modal");
     const closeButton = document.querySelector(".close-button");
     const modalTitle = document.getElementById("modal-title");
+    const addRecipeButton = document.getElementById("add-recipe-button");
+    const recipeTableBody = document.querySelector("#recipe-table tbody");
+    const saveButton = document.getElementById("save-button");
 
     const formInputs = {
         name: document.getElementById("name"),
@@ -20,10 +23,9 @@ document.addEventListener("DOMContentLoaded", () => {
     let recipeData = [];
     let editingIndex = null;
 
-    // Ensure modal is hidden by default
     modal.style.display = "none";
 
-    /** Fetches recipes from API **/
+    /** Fetch recipes & display them in the table **/
     async function fetchRecipes() {
         try {
             const response = await fetch("/api/recipes/");
@@ -34,7 +36,25 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    /** Handles opening the modal **/
+    function renderTable() {
+        recipeTableBody.innerHTML = "";
+        recipeData.forEach((recipe, index) => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td>${recipe.name}</td>
+                <td>${recipe.servingsType}</td>
+                <td>${recipe.servingsCount}</td>
+                <td>${recipe.tags || "None"}</td>
+                <td>
+                    <button class="edit-button" data-index="${index}">Edit</button>
+                    <button class="delete-button" data-index="${index}">Delete</button>
+                </td>
+            `;
+            recipeTableBody.appendChild(row);
+        });
+    }
+
+    /** Opens the recipe modal **/
     function openModal(editIndex = null) {
         editingIndex = editIndex;
         modalTitle.textContent = editingIndex !== null ? "Edit Recipe" : "Add Recipe";
@@ -50,8 +70,8 @@ document.addEventListener("DOMContentLoaded", () => {
             for (const key in formInputs) {
                 formInputs[key].value = "";
             }
-            loadIngredients([]); // Ensure empty starting row
-            loadSteps([]); // Ensure empty starting row
+            loadIngredients([]);
+            loadSteps([]);
         }
 
         modal.style.display = "block";
@@ -66,14 +86,14 @@ document.addEventListener("DOMContentLoaded", () => {
     function loadIngredients(ingredients) {
         ingredientsTable.innerHTML = "";
         ingredients.forEach(addIngredientRow);
-        addIngredientRow(); // Ensure there's at least one blank row
+        addIngredientRow();
     }
 
     /** Loads steps, ensuring one empty row **/
     function loadSteps(steps) {
         stepsTable.innerHTML = "";
         steps.forEach(addStepRow);
-        addStepRow(); // Ensure there's at least one blank row
+        addStepRow();
     }
 
     /** Dynamically adds an ingredient row **/
@@ -116,7 +136,7 @@ document.addEventListener("DOMContentLoaded", () => {
         stepsTable.appendChild(row);
     }
 
-    /** Deletes a row, ensuring at least one remains **/
+    /** Deletes a row but ensures at least one remains **/
     function deleteRow(row, table) {
         if (table.children.length > 1) {
             row.remove();
@@ -141,7 +161,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    /** Shows autocomplete suggestions **/
     function showAutocomplete(input, results) {
         const autocompleteList = document.createElement("ul");
         autocompleteList.className = "autocomplete-list";
@@ -159,17 +178,8 @@ document.addEventListener("DOMContentLoaded", () => {
         input.parentNode.appendChild(autocompleteList);
     }
 
-    /** Hides autocomplete suggestions **/
     function hideAutocomplete() {
         document.querySelectorAll(".autocomplete-list").forEach(el => el.remove());
-    }
-
-    /** Automatically adds a new empty step if user types in the last one **/
-    function autoAddStep(lastRow) {
-        const rows = Array.from(stepsTable.children);
-        if (rows.indexOf(lastRow) === rows.length - 1) {
-            addStepRow();
-        }
     }
 
     /** Saves the recipe **/
@@ -211,22 +221,8 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    function getIngredientsData() {
-        return Array.from(ingredientsTable.children).map(row => ({
-            name: row.querySelector(".ingredient-name").value.trim(),
-            quantity: parseFloat(row.querySelector(".ingredient-quantity").value) || null,
-            unit: row.querySelector(".ingredient-unit").value.trim(),
-            notes: row.querySelector(".ingredient-note").value.trim(),
-        })).filter(item => item.name);
-    }
-
-    function getStepsData() {
-        return Array.from(stepsTable.children).map(row => ({
-            title: row.querySelector(".step-title").value.trim(),
-            description: row.querySelector(".step-description").value.trim(),
-        })).filter(step => step.description);
-    }
-
+    addRecipeButton.addEventListener("click", () => openModal());
     closeButton.addEventListener("click", closeModal);
+    saveButton.addEventListener("click", saveRecipe);
     fetchRecipes();
 });
