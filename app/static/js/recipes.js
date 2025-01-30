@@ -91,7 +91,7 @@ document.addEventListener("DOMContentLoaded", () => {
         modal.style.display = "none";
         editingIndex = null;
     }
-
+    
     async function fetchIngredients(query, callback) {
         if (query.length < 2) {
             return;
@@ -144,13 +144,27 @@ document.addEventListener("DOMContentLoaded", () => {
     function loadIngredients(ingredients) {
         ingredientsTable.innerHTML = "";
         ingredients.forEach(addIngredientRow);
-        addIngredientRow();
+        addIngredientRow(); // Ensure at least one empty row
+    }
+
+    function addIngredientRow(data = {}) {
+        const row = document.createElement("tr");
+
+        row.innerHTML = `
+            <td><input type="text" class="ingredient-name" placeholder="Ingredient" value="${data.name || ""}"></td>
+            <td><input type="number" class="ingredient-quantity" placeholder="Quantity" value="${data.quantity || ""}"></td>
+            <td><input type="text" class="ingredient-unit" placeholder="Unit" value="${data.unit || ""}"></td>
+            <td><button class="delete-ingredient">X</button></td>
+        `;
+
+        row.querySelector(".delete-ingredient").addEventListener("click", () => deleteRow(row, ingredientsTable));
+        ingredientsTable.appendChild(row);
     }
 
     function loadSteps(steps) {
         stepsTable.innerHTML = "";
         steps.forEach(addStepRow);
-        addStepRow();
+        addStepRow(); // Ensure at least one empty row
     }
 
     function addStepRow(data = {}) {
@@ -179,6 +193,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const suggestionList = row.querySelector(".ingredient-suggestions");
 
         setupIngredientSearch(searchInput, suggestionList);
+
 
         row.querySelector(".delete-step").addEventListener("click", () => deleteRow(row, stepsTable));
         stepsTable.appendChild(row);
