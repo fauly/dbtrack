@@ -19,11 +19,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const ingredientsTable = document.getElementById("ingredient-table");
     const stepsTable = document.getElementById("step-container");
+    const tagSuggestions = document.getElementById("tag-suggestions");
 
     let recipeData = [];
     let editingIndex = null;
 
-    modal.style.display = "none";
+    // Ensure modal is fullscreen
+    modal.classList.add("fullscreen");
 
     async function fetchRecipes() {
         try {
@@ -54,13 +56,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function openModal(editIndex = null) {
-        console.log("Opening modal...");
-
-        if (!modal) {
-            console.error("Modal element not found!");
-            return;
-        }
-
         editingIndex = editIndex;
         modalTitle.textContent = editingIndex !== null ? "Edit Recipe" : "Add Recipe";
 
@@ -89,10 +84,41 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function closeModal() {
-        console.log("Closing modal...");
         modal.style.display = "none";
         editingIndex = null;
     }
+
+    async function fetchTags(query) {
+        if (query.length < 2) {
+            tagSuggestions.innerHTML = "";
+            return;
+        }
+        try {
+            const response = await fetch(`/api/tags/search?query=${query}`);
+            const tags = await response.json();
+            tagSuggestions.innerHTML = "";
+            tags.slice(0, 4).forEach(tag => {
+                const item = document.createElement("li");
+                item.textContent = tag;
+                item.addEventListener("click", () => {
+                    formInputs.tags.value = tag;
+                    tagSuggestions.innerHTML = "";
+                });
+                tagSuggestions.appendChild(item);
+            });
+            const createTagItem = document.createElement("li");
+            createTagItem.textContent = `Create a new tag "${query}"`;
+            createTagItem.addEventListener("click", () => {
+                formInputs.tags.value = query;
+                tagSuggestions.innerHTML = "";
+            });
+            tagSuggestions.appendChild(createTagItem);
+        } catch (error) {
+            console.error("Error fetching tags:", error);
+        }
+    }
+
+    formInputs.tags.addEventListener("input", (e) => fetchTags(e.target.value));
 
     function loadIngredients(ingredients) {
         ingredientsTable.innerHTML = "";
@@ -113,7 +139,6 @@ document.addEventListener("DOMContentLoaded", () => {
             <td><input type="text" class="ingredient-name" placeholder="Ingredient" value="${data.name || ""}"></td>
             <td><input type="number" class="ingredient-quantity" placeholder="Quantity" value="${data.quantity || ""}"></td>
             <td><input type="text" class="ingredient-unit" placeholder="Unit" value="${data.unit || ""}"></td>
-            <td><input type="text" class="ingredient-note" placeholder="Notes (Optional)" value="${data.notes || ""}"></td>
             <td><button class="delete-ingredient">X</button></td>
         `;
 
@@ -123,9 +148,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function addStepRow(data = {}) {
         const row = document.createElement("div");
+        row.classList.add("step-row");
 
         row.innerHTML = `
-            <textarea class="step-description" placeholder="Step Description">${data.description || ""}</textarea>
+            <div class="step-left">
+                <input type="text" class="step-title" placeholder="Step Title" value="${data.title || ""}">
+                <textarea class="step-description" placeholder="Step Description">${data.description || ""}</textarea>
+            </div>
+            <div class="step-right">
+                <table class="step-ingredients">
+                    <thead>
+                        <tr><th>Ingredient</th><th>Quantity</th><th>Unit</th></tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+                <input type="text" class="step-ingredient-search" placeholder="Search ingredient...">
+                <ul class="ingredient-suggestions"></ul>
+            </div>
             <button class="delete-step">X</button>
         `;
 
@@ -177,23 +216,8 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    if (addRecipeButton) {
-        addRecipeButton.addEventListener("click", () => openModal());
-    } else {
-        console.error("Add Recipe button not found!");
-    }
-
-    if (closeButton) {
-        closeButton.addEventListener("click", closeModal);
-    } else {
-        console.error("Close button not found!");
-    }
-
-    if (saveButton) {
-        saveButton.addEventListener("click", saveRecipe);
-    } else {
-        console.error("Save button not found!");
-    }
-
+    addRecipeButton.addEventListener("click", () => openModal());
+    closeButton.addEventListener("click", closeModal);
+    saveButton.addEventListener("click", saveRecipe);
     fetchRecipes();
 });
