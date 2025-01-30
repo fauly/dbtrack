@@ -12,18 +12,19 @@ document.addEventListener("DOMContentLoaded", () => {
         servingsCount: document.getElementById("servings-count"),
         tags: document.getElementById("tag-input"),
         prepTime: document.getElementById("prep-time"),
-        cookTime: document.getElementById("cook-time")
+        cookTime: document.getElementById("cook-time"),
+        totalTime: document.getElementById("total-time"),
+        notes: document.getElementById("notes"),
     };
 
-    const ingredientsTable = document.getElementById("ingredients-table");
-    const stepsTable = document.getElementById("steps-table");
+    const ingredientsTable = document.getElementById("ingredient-table");
+    const stepsTable = document.getElementById("step-container");
 
     let recipeData = [];
     let editingIndex = null;
 
     modal.style.display = "none";
 
-    /** Fetch recipes & display them in the table **/
     async function fetchRecipes() {
         try {
             const response = await fetch("/api/recipes/");
@@ -52,49 +53,59 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    /** Opens the recipe modal **/
     function openModal(editIndex = null) {
+        console.log("Opening modal...");
+
+        if (!modal) {
+            console.error("Modal element not found!");
+            return;
+        }
+
         editingIndex = editIndex;
         modalTitle.textContent = editingIndex !== null ? "Edit Recipe" : "Add Recipe";
 
         if (editingIndex !== null) {
             const entry = recipeData[editingIndex];
             for (const key in formInputs) {
-                formInputs[key].value = entry[key] || "";
+                if (formInputs[key]) {
+                    formInputs[key].value = entry[key] || "";
+                }
             }
             loadIngredients(entry.ingredients);
             loadSteps(entry.steps);
         } else {
             for (const key in formInputs) {
-                formInputs[key].value = "";
+                if (formInputs[key]) {
+                    formInputs[key].value = "";
+                }
             }
             loadIngredients([]);
             loadSteps([]);
         }
 
         modal.style.display = "block";
+        modal.style.visibility = "visible";
+        modal.style.opacity = "1";
     }
 
     function closeModal() {
+        console.log("Closing modal...");
         modal.style.display = "none";
         editingIndex = null;
     }
 
-    /** Loads ingredients, ensuring one empty row **/
     function loadIngredients(ingredients) {
         ingredientsTable.innerHTML = "";
         ingredients.forEach(addIngredientRow);
         addIngredientRow();
     }
 
-    /** Loads steps, ensuring one empty row **/
     function loadSteps(steps) {
         stepsTable.innerHTML = "";
         steps.forEach(addStepRow);
         addStepRow();
     }
 
-    /** Dynamically adds an ingredient row **/
     function addIngredientRow(data = {}) {
         const row = document.createElement("tr");
 
@@ -106,81 +117,28 @@ document.addEventListener("DOMContentLoaded", () => {
             <td><button class="delete-ingredient">X</button></td>
         `;
 
-        row.querySelector(".ingredient-name").addEventListener("input", handleIngredientInput);
         row.querySelector(".delete-ingredient").addEventListener("click", () => deleteRow(row, ingredientsTable));
-
         ingredientsTable.appendChild(row);
     }
 
-    /** Dynamically adds a step row **/
     function addStepRow(data = {}) {
-        const row = document.createElement("tr");
+        const row = document.createElement("div");
 
         row.innerHTML = `
-            <td><input type="text" class="step-title" placeholder="Step Title (Optional)" value="${data.title || ""}"></td>
-            <td><textarea class="step-description" placeholder="Step Description">${data.description || ""}</textarea></td>
-            <td>
-                <table class="step-ingredients">
-                    <thead><tr><th>Ingredient</th><th>Quantity</th><th>Unit</th></tr></thead>
-                    <tbody></tbody>
-                </table>
-            </td>
-            <td><button class="delete-step">X</button></td>
+            <textarea class="step-description" placeholder="Step Description">${data.description || ""}</textarea>
+            <button class="delete-step">X</button>
         `;
 
         row.querySelector(".delete-step").addEventListener("click", () => deleteRow(row, stepsTable));
-        row.querySelector(".step-description").addEventListener("input", () => autoAddStep(row));
-
         stepsTable.appendChild(row);
     }
 
-    /** Deletes a row but ensures at least one remains **/
     function deleteRow(row, table) {
         if (table.children.length > 1) {
             row.remove();
         }
     }
 
-    /** Handles ingredient name input (autocomplete & searching) **/
-    async function handleIngredientInput(event) {
-        const input = event.target;
-        const query = input.value.trim();
-
-        if (query.length > 1) {
-            try {
-                const response = await fetch(`/api/ingredients/search?q=${query}`);
-                const results = await response.json();
-                showAutocomplete(input, results);
-            } catch (error) {
-                console.error("Error searching ingredients:", error);
-            }
-        } else {
-            hideAutocomplete();
-        }
-    }
-
-    function showAutocomplete(input, results) {
-        const autocompleteList = document.createElement("ul");
-        autocompleteList.className = "autocomplete-list";
-
-        results.forEach(item => {
-            const option = document.createElement("li");
-            option.textContent = item.name;
-            option.addEventListener("click", () => {
-                input.value = item.name;
-                hideAutocomplete();
-            });
-            autocompleteList.appendChild(option);
-        });
-
-        input.parentNode.appendChild(autocompleteList);
-    }
-
-    function hideAutocomplete() {
-        document.querySelectorAll(".autocomplete-list").forEach(el => el.remove());
-    }
-
-    /** Saves the recipe **/
     async function saveRecipe() {
         const newRecipe = {
             name: formInputs.name.value.trim(),
@@ -219,8 +177,23 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    addRecipeButton.addEventListener("click", () => openModal());
-    closeButton.addEventListener("click", closeModal);
-    saveButton.addEventListener("click", saveRecipe);
+    if (addRecipeButton) {
+        addRecipeButton.addEventListener("click", () => openModal());
+    } else {
+        console.error("Add Recipe button not found!");
+    }
+
+    if (closeButton) {
+        closeButton.addEventListener("click", closeModal);
+    } else {
+        console.error("Close button not found!");
+    }
+
+    if (saveButton) {
+        saveButton.addEventListener("click", saveRecipe);
+    } else {
+        console.error("Save button not found!");
+    }
+
     fetchRecipes();
 });

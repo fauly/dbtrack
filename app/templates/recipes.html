@@ -29,31 +29,30 @@
         <button id="add-recipe-button" class="primary-button">Add New Recipe</button>
     </div>
 
-    <!-- Fullscreen Modal for Adding/Editing Recipes -->
+    <!-- Modal for Adding/Editing Recipes -->
     <div id="recipe-modal" class="modal">
         <div class="modal-content fullscreen">
             <span class="close-button">&times;</span>
             <h2 id="modal-title">Add/Edit Recipe</h2>
-            
+
             <div class="form-group">
                 <label for="name">Recipe Name:</label>
                 <input type="text" id="name">
             </div>
-            
+
             <div class="form-group">
                 <label for="prep-time">Prep Time:</label>
                 <input type="text" id="prep-time">
             </div>
-            
+
             <div class="form-group">
                 <label for="cook-time">Cook Time:</label>
                 <input type="text" id="cook-time">
             </div>
-            
+
             <div class="form-group">
                 <label for="servings-type">Servings Type:</label>
-                <input type="text" id="servings-type" placeholder="e.g., Cake, Muffin">
-                <ul id="servings-suggestions" class="suggestions-list"></ul>
+                <input type="text" id="servings-type">
             </div>
 
             <div class="form-group">
@@ -63,9 +62,7 @@
 
             <div class="form-group">
                 <label>Tags:</label>
-                <input type="text" id="tag-input" placeholder="Type a tag...">
-                <ul id="tag-suggestions" class="suggestions-list"></ul>
-                <div id="tag-container"></div>
+                <input type="text" id="tag-input">
             </div>
 
             <h3>Ingredients</h3>
@@ -79,15 +76,11 @@
                         <th>Actions</th>
                     </tr>
                 </thead>
-                <tbody>
-                    <!-- Dynamically populated ingredients -->
-                </tbody>
+                <tbody></tbody>
             </table>
 
             <h3>Steps</h3>
-            <div id="step-container">
-                <!-- Steps will be dynamically added here -->
-            </div>
+            <div id="step-container"></div>
 
             <div class="modal-actions">
                 <button id="save-button" class="primary-button">Save</button>
@@ -95,6 +88,7 @@
             </div>
         </div>
     </div>
+
 
     <script src="/static/js/recipes.js"></script>
 </body>
