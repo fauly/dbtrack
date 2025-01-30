@@ -10,7 +10,7 @@ document.addEventListener("DOMContentLoaded", () => {
         name: document.getElementById("name"),
         servingsType: document.getElementById("servings-type"),
         servingsCount: document.getElementById("servings-count"),
-        tags: document.getElementById("tags"),
+        tags: document.getElementById("tag-input"),
         prepTime: document.getElementById("prep-time"),
         cookTime: document.getElementById("cook-time"),
         notes: document.getElementById("notes")
