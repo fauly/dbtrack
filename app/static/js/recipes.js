@@ -1,10 +1,9 @@
 document.addEventListener("DOMContentLoaded", () => {
     const modal = document.getElementById("recipe-modal");
     const closeButton = document.querySelector(".close-button");
-    const modalTitle = document.getElementById("modal-title");
     const addRecipeButton = document.getElementById("add-recipe-button");
-    const recipeTableBody = document.querySelector("#recipe-table tbody");
     const saveButton = document.getElementById("save-button");
+    const recipeTableBody = document.querySelector("#recipe-table tbody");
 
     const formInputs = {
         name: document.getElementById("name"),
@@ -23,6 +22,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     let recipeData = [];
     let editingIndex = null;
+    let activeSuggestionIndex = -1;
 
     // Ensure modal is fullscreen
     modal.classList.add("fullscreen");
@@ -61,7 +61,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function openModal(editIndex = null) {
         editingIndex = editIndex;
-        modalTitle.textContent = editingIndex !== null ? "Edit Recipe" : "Add Recipe";
+        modal.style.display = "block";
 
         if (editingIndex !== null) {
             const entry = recipeData[editingIndex];
@@ -81,170 +81,120 @@ document.addEventListener("DOMContentLoaded", () => {
             loadIngredients([]);
             loadSteps([]);
         }
-
-        modal.style.display = "block";
-        modal.style.visibility = "visible";
-        modal.style.opacity = "1";
     }
 
     function closeModal() {
         modal.style.display = "none";
         editingIndex = null;
     }
-    
+
+    function setupAutosuggest(inputElement, suggestionList, fetchFunction, selectCallback) {
+        inputElement.addEventListener("input", () => {
+            fetchFunction(inputElement.value, (suggestions) => {
+                renderAutosuggest(suggestions, suggestionList, inputElement, selectCallback);
+            });
+        });
+
+        inputElement.addEventListener("keydown", (event) => {
+            if (suggestionList.children.length === 0) return;
+
+            if (event.key === "ArrowDown") {
+                event.preventDefault();
+                activeSuggestionIndex = Math.min(activeSuggestionIndex + 1, suggestionList.children.length - 1);
+                updateActiveSuggestion(suggestionList);
+            } else if (event.key === "ArrowUp") {
+                event.preventDefault();
+                activeSuggestionIndex = Math.max(activeSuggestionIndex - 1, 0);
+                updateActiveSuggestion(suggestionList);
+            } else if (event.key === "Enter") {
+                event.preventDefault();
+                if (activeSuggestionIndex >= 0) {
+                    suggestionList.children[activeSuggestionIndex].click();
+                }
+            } else if (event.key === "Escape") {
+                suggestionList.innerHTML = "";
+                activeSuggestionIndex = -1;
+            }
+        });
+    }
+
+    function updateActiveSuggestion(suggestionList) {
+        [...suggestionList.children].forEach((item, index) => {
+            item.classList.toggle("active", index === activeSuggestionIndex);
+        });
+    }
+
+    function renderAutosuggest(suggestions, suggestionList, inputElement, selectCallback) {
+        suggestionList.innerHTML = "";
+        activeSuggestionIndex = -1;
+
+        suggestions.forEach((suggestion, index) => {
+            const item = document.createElement("li");
+            item.textContent = suggestion;
+            item.classList.add("suggestion-item");
+            item.addEventListener("click", () => {
+                inputElement.value = suggestion;
+                suggestionList.innerHTML = "";
+                selectCallback(suggestion);
+            });
+
+            suggestionList.appendChild(item);
+        });
+
+        if (suggestions.length > 0) {
+            suggestionList.style.display = "block";
+        } else {
+            suggestionList.style.display = "none";
+        }
+    }
+
+    async function fetchTags(query, callback) {
+        if (query.length < 2) {
+            callback([]);
+            return;
+        }
+        try {
+            const response = await fetch(`/api/tags/search?query=${query}`);
+            const tags = await response.json();
+            tags.push(`Create a new tag "${query}"`);
+            callback(tags.slice(0, 5));
+        } catch (error) {
+            console.error("Error fetching tags:", error);
+        }
+    }
+
     async function fetchIngredients(query, callback) {
         if (query.length < 2) {
+            callback([]);
             return;
         }
         try {
             const response = await fetch(`/api/ingredients/search?query=${query}`);
             const ingredients = await response.json();
-            callback(ingredients);
+            ingredients.push(`Search ingredient database`);
+            callback(ingredients.map(i => i.name).slice(0, 5));
         } catch (error) {
             console.error("Error fetching ingredients:", error);
         }
     }
 
-    function setupIngredientSearch(inputElement, suggestionList) {
-        inputElement.addEventListener("input", () => {
-            fetchIngredients(inputElement.value, (ingredients) => {
-                suggestionList.innerHTML = "";
-                ingredients.slice(0, 5).forEach(ingredient => {
-                    const item = document.createElement("li");
-                    item.textContent = ingredient.name;
-                    item.addEventListener("click", () => {
-                        inputElement.value = ingredient.name;
-                        suggestionList.innerHTML = "";
-                    });
-                    suggestionList.appendChild(item);
-                });
-                if (ingredients.length === 0) {
-                    const searchDbItem = document.createElement("li");
-                    searchDbItem.textContent = `Search ingredient database`;
-                    searchDbItem.addEventListener("click", () => {
-                        fetchIngredients(inputElement.value, (dbIngredients) => {
-                            suggestionList.innerHTML = "";
-                            dbIngredients.slice(0, 5).forEach(ingredient => {
-                                const dbItem = document.createElement("li");
-                                dbItem.textContent = ingredient.name;
-                                dbItem.addEventListener("click", () => {
-                                    inputElement.value = ingredient.name;
-                                    suggestionList.innerHTML = "";
-                                });
-                                suggestionList.appendChild(dbItem);
-                            });
-                        });
-                    });
-                    suggestionList.appendChild(searchDbItem);
-                }
-            });
-        });
+    function selectTag(tag) {
+        console.log("Tag selected:", tag);
     }
 
-    function loadIngredients(ingredients) {
-        ingredientsTable.innerHTML = "";
-        ingredients.forEach(addIngredientRow);
-        addIngredientRow(); // Ensure at least one empty row
+    function selectIngredient(ingredient) {
+        console.log("Ingredient selected:", ingredient);
     }
 
-    function addIngredientRow(data = {}) {
-        const row = document.createElement("tr");
+    setupAutosuggest(formInputs.tags, tagSuggestions, fetchTags, selectTag);
 
-        row.innerHTML = `
-            <td><input type="text" class="ingredient-name" placeholder="Ingredient" value="${data.name || ""}"></td>
-            <td><input type="number" class="ingredient-quantity" placeholder="Quantity" value="${data.quantity || ""}"></td>
-            <td><input type="text" class="ingredient-unit" placeholder="Unit" value="${data.unit || ""}"></td>
-            <td><button class="delete-ingredient">X</button></td>
-        `;
+    document.querySelectorAll(".step-ingredient-search").forEach(inputElement => {
+        const suggestionList = inputElement.nextElementSibling;
+        setupAutosuggest(inputElement, suggestionList, fetchIngredients, selectIngredient);
+    });
 
-        row.querySelector(".delete-ingredient").addEventListener("click", () => deleteRow(row, ingredientsTable));
-        ingredientsTable.appendChild(row);
-    }
-
-    function loadSteps(steps) {
-        stepsTable.innerHTML = "";
-        steps.forEach(addStepRow);
-        addStepRow(); // Ensure at least one empty row
-    }
-
-    function addStepRow(data = {}) {
-        const row = document.createElement("div");
-        row.classList.add("step-row");
-
-        row.innerHTML = `
-            <div class="step-left">
-                <input type="text" class="step-title" placeholder="Step Title" value="${data.title || ""}">
-                <textarea class="step-description" placeholder="Step Description">${data.description || ""}</textarea>
-            </div>
-            <div class="step-right">
-                <table class="step-ingredients">
-                    <thead>
-                        <tr><th>Ingredient</th><th>Quantity</th><th>Unit</th></tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-                <input type="text" class="step-ingredient-search" placeholder="Search ingredient...">
-                <ul class="ingredient-suggestions"></ul>
-            </div>
-            <button class="delete-step">X</button>
-        `;
-
-        const searchInput = row.querySelector(".step-ingredient-search");
-        const suggestionList = row.querySelector(".ingredient-suggestions");
-
-        setupIngredientSearch(searchInput, suggestionList);
-
-
-        row.querySelector(".delete-step").addEventListener("click", () => deleteRow(row, stepsTable));
-        stepsTable.appendChild(row);
-    }
-
-    function deleteRow(row, table) {
-        if (table.children.length > 1) {
-            row.remove();
-        }
-    }
-
-    async function saveRecipe() {
-        const newRecipe = {
-            name: formInputs.name.value.trim(),
-            servingsType: formInputs.servingsType.value.trim(),
-            servingsCount: parseInt(formInputs.servingsCount.value) || 1,
-            tags: formInputs.tags.value.trim(),
-            prepTime: formInputs.prepTime.value.trim(),
-            cookTime: formInputs.cookTime.value.trim(),
-            totalTime: formInputs.totalTime.value.trim(),
-            notes: formInputs.notes.value.trim(),
-            ingredients: [],
-            steps: [],
-        };
-
-        if (!newRecipe.name) {
-            alert("Recipe name is required.");
-            return;
-        }
-
-        try {
-            const method = editingIndex !== null ? "PUT" : "POST";
-            const url = editingIndex !== null ? `/api/recipes/${recipeData[editingIndex].id}` : "/api/recipes/";
-
-            const response = await fetch(url, {
-                method: method,
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(newRecipe),
-            });
-
-            if (!response.ok) throw new Error("Failed to save recipe.");
-            closeModal();
-            fetchRecipes();
-        } catch (error) {
-            console.error("Error saving recipe:", error);
-            alert("Failed to save the recipe.");
-        }
-    }
-
-    addRecipeButton.addEventListener("click", () => openModal());
+    addRecipeButton.addEventListener("click", openModal);
     closeButton.addEventListener("click", closeModal);
-    saveButton.addEventListener("click", saveRecipe);
+    saveButton.addEventListener("click", () => console.log("Saving..."));
     fetchRecipes();
 });
