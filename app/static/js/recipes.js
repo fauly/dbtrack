@@ -13,7 +13,6 @@ document.addEventListener("DOMContentLoaded", () => {
         tags: document.getElementById("tags"),
         prepTime: document.getElementById("prep-time"),
         cookTime: document.getElementById("cook-time"),
-        totalTime: document.getElementById("total-time"),
         notes: document.getElementById("notes")
     };
 
