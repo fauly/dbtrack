@@ -12,8 +12,7 @@ document.addEventListener("DOMContentLoaded", () => {
         servingsCount: document.getElementById("servings-count"),
         tags: document.getElementById("tag-input"),
         prepTime: document.getElementById("prep-time"),
-        cookTime: document.getElementById("cook-time"),
-        notes: document.getElementById("notes")
+        cookTime: document.getElementById("cook-time")
     };
 
     const ingredientsTable = document.getElementById("ingredients-table");
