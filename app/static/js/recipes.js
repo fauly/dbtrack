@@ -1,9 +1,10 @@
 document.addEventListener("DOMContentLoaded", () => {
     const modal = document.getElementById("recipe-modal");
     const closeButton = document.querySelector(".close-button");
+    const modalTitle = document.getElementById("modal-title");
     const addRecipeButton = document.getElementById("add-recipe-button");
-    const saveButton = document.getElementById("save-button");
     const recipeTableBody = document.querySelector("#recipe-table tbody");
+    const saveButton = document.getElementById("save-button");
 
     const formInputs = {
         name: document.getElementById("name"),
@@ -61,7 +62,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function openModal(editIndex = null) {
         editingIndex = editIndex;
-        modal.style.display = "block";
+        modalTitle.textContent = editingIndex !== null ? "Edit Recipe" : "Add Recipe";
 
         if (editingIndex !== null) {
             const entry = recipeData[editingIndex];
@@ -81,6 +82,10 @@ document.addEventListener("DOMContentLoaded", () => {
             loadIngredients([]);
             loadSteps([]);
         }
+
+        modal.style.display = "block";
+        modal.style.visibility = "visible";
+        modal.style.opacity = "1";
     }
 
     function closeModal() {
