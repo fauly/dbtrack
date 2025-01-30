@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from app.models import db, Recipe, Tag
+from app.models import db, Recipe, Tag, Ingredients
 
 bp = Blueprint("recipes", __name__, url_prefix="/api/recipes")
 
@@ -18,8 +18,15 @@ def add_recipe():
     if not all(field in data for field in required_fields):
         return jsonify({"error": "Missing required fields"}), 400
 
-    # Handle tags (convert comma-separated string into a list)
-    tags = data.get("tags", "").split(", ") if data.get("tags") else []
+    # Handle tags (convert list into actual tag objects)
+    tag_names = data.get("tags", [])
+    tags = []
+    for tag_name in tag_names:
+        tag = Tag.query.filter_by(name=tag_name).first()
+        if not tag:
+            tag = Tag(name=tag_name)
+            db.session.add(tag)
+        tags.append(tag)
 
     # Check if the recipe already exists
     existing_recipe = Recipe.query.filter_by(name=data["name"]).first()
@@ -32,12 +39,13 @@ def add_recipe():
         servings_count=data["servings_count"],
         ingredients=data["ingredients"],
         steps=data["steps"],
-        tags=", ".join(tags),
         notes=data.get("notes", ""),
         prep_time=data.get("prep_time", ""),
         cook_time=data.get("cook_time", ""),
         total_time=data.get("total_time", ""),
     )
+    
+    recipe.tags.extend(tags)
     db.session.add(recipe)
     db.session.commit()
 
@@ -52,13 +60,23 @@ def update_recipe(recipe_id):
     if not recipe:
         return jsonify({"error": f"Recipe with ID {recipe_id} not found."}), 404
 
+    # Handle tags (update to match input)
+    tag_names = data.get("tags", [])
+    tags = []
+    for tag_name in tag_names:
+        tag = Tag.query.filter_by(name=tag_name).first()
+        if not tag:
+            tag = Tag(name=tag_name)
+            db.session.add(tag)
+        tags.append(tag)
+
     # Update fields
     recipe.name = data.get("name", recipe.name)
     recipe.servings_type = data.get("servings_type", recipe.servings_type)
     recipe.servings_count = data.get("servings_count", recipe.servings_count)
     recipe.ingredients = data.get("ingredients", recipe.ingredients)
     recipe.steps = data.get("steps", recipe.steps)
-    recipe.tags = ", ".join(data.get("tags", "").split(", ")) if data.get("tags") else recipe.tags
+    recipe.tags = tags
     recipe.notes = data.get("notes", recipe.notes)
     recipe.prep_time = data.get("prep_time", recipe.prep_time)
     recipe.cook_time = data.get("cook_time", recipe.cook_time)
@@ -85,19 +103,34 @@ def search_tags():
     if not query:
         return jsonify([])
 
-    tags = Tag.query.filter(Tag.name.ilike(f"%{query}%")).limit(10).all()
+    tags = Tag.query.filter(Tag.name.ilike(f"%{query}%")).limit(4).all()
     return jsonify([tag.name for tag in tags])
 
-# Search for serving types
-@bp.route("/servings/search", methods=["GET"])
-def search_servings():
+# Search for ingredients
+@bp.route("/ingredients/search", methods=["GET"])
+def search_ingredients():
     query = request.args.get("query", "").strip()
     if not query:
         return jsonify([])
 
-    servings = db.session.query(Recipe.servings_type).distinct().filter(
-        Recipe.servings_type.ilike(f"%{query}%")
-    ).limit(10).all()
+    ingredients = Ingredients.query.filter(Ingredients.name.ilike(f"%{query}%")).limit(5).all()
+    return jsonify([ingredient.to_dict() for ingredient in ingredients])
 
-    return jsonify([serving[0] for serving in servings if serving[0]])
+# Add a new tag
+@bp.route("/tags", methods=["POST"])
+def add_tag():
+    data = request.json
+    tag_name = data.get("name", "").strip()
 
+    if not tag_name:
+        return jsonify({"error": "Tag name is required."}), 400
+
+    existing_tag = Tag.query.filter_by(name=tag_name).first()
+    if existing_tag:
+        return jsonify({"message": "Tag already exists.", "tag": existing_tag.to_dict()}), 200
+
+    new_tag = Tag(name=tag_name)
+    db.session.add(new_tag)
+    db.session.commit()
+
+    return jsonify({"message": "Tag added successfully!", "tag": new_tag.to_dict()}), 201
