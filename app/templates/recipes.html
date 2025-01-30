@@ -29,9 +29,9 @@
         <button id="add-recipe-button" class="primary-button">Add New Recipe</button>
     </div>
 
-    <!-- Modal for Adding/Editing Recipes -->
-    <div id="recipe-modal" class="modal">
-        <div class="modal-content fullscreen">
+    <!-- Fullscreen Modal for Adding/Editing Recipes -->
+    <div id="recipe-modal" class="modal fullscreen">
+        <div class="modal-content">
             <span class="close-button">&times;</span>
             <h2 id="modal-title">Add/Edit Recipe</h2>
 
@@ -53,6 +53,7 @@
             <div class="form-group">
                 <label for="servings-type">Servings Type:</label>
                 <input type="text" id="servings-type">
+                <ul id="servings-suggestions" class="suggestions-list"></ul>
             </div>
 
             <div class="form-group">
@@ -62,7 +63,9 @@
 
             <div class="form-group">
                 <label>Tags:</label>
-                <input type="text" id="tag-input">
+                <input type="text" id="tag-input" placeholder="Type a tag...">
+                <ul id="tag-suggestions" class="suggestions-list"></ul>
+                <div id="tag-container"></div>
             </div>
 
             <h3>Ingredients</h3>
@@ -72,15 +75,34 @@
                         <th>Ingredient</th>
                         <th>Quantity</th>
                         <th>Unit</th>
-                        <th>Note</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
-                <tbody></tbody>
+                <tbody>
+                    <!-- Dynamically populated ingredients -->
+                </tbody>
             </table>
 
             <h3>Steps</h3>
-            <div id="step-container"></div>
+            <div id="step-container">
+                <div class="step-row">
+                    <div class="step-left">
+                        <input type="text" class="step-title" placeholder="Step Title">
+                        <textarea class="step-description" placeholder="Step Description"></textarea>
+                    </div>
+                    <div class="step-right">
+                        <table class="step-ingredients">
+                            <thead>
+                                <tr><th>Ingredient</th><th>Quantity</th><th>Unit</th></tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                        <input type="text" class="step-ingredient-search" placeholder="Search ingredient...">
+                        <ul class="ingredient-suggestions"></ul>
+                    </div>
+                    <button class="delete-step">X</button>
+                </div>
+            </div>
 
             <div class="modal-actions">
                 <button id="save-button" class="primary-button">Save</button>
@@ -88,7 +110,6 @@
             </div>
         </div>
     </div>
-
 
     <script src="/static/js/recipes.js"></script>
 </body>
