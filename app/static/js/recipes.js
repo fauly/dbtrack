@@ -26,6 +26,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Ensure modal is fullscreen
     modal.classList.add("fullscreen");
+    modal.style.width = "100vw";
+    modal.style.height = "100vh";
+    modal.style.top = "0";
+    modal.style.left = "0";
 
     async function fetchRecipes() {
         try {
@@ -88,37 +92,54 @@ document.addEventListener("DOMContentLoaded", () => {
         editingIndex = null;
     }
 
-    async function fetchTags(query) {
+    async function fetchIngredients(query, callback) {
         if (query.length < 2) {
-            tagSuggestions.innerHTML = "";
             return;
         }
         try {
-            const response = await fetch(`/api/tags/search?query=${query}`);
-            const tags = await response.json();
-            tagSuggestions.innerHTML = "";
-            tags.slice(0, 4).forEach(tag => {
-                const item = document.createElement("li");
-                item.textContent = tag;
-                item.addEventListener("click", () => {
-                    formInputs.tags.value = tag;
-                    tagSuggestions.innerHTML = "";
-                });
-                tagSuggestions.appendChild(item);
-            });
-            const createTagItem = document.createElement("li");
-            createTagItem.textContent = `Create a new tag "${query}"`;
-            createTagItem.addEventListener("click", () => {
-                formInputs.tags.value = query;
-                tagSuggestions.innerHTML = "";
-            });
-            tagSuggestions.appendChild(createTagItem);
+            const response = await fetch(`/api/ingredients/search?query=${query}`);
+            const ingredients = await response.json();
+            callback(ingredients);
         } catch (error) {
-            console.error("Error fetching tags:", error);
+            console.error("Error fetching ingredients:", error);
         }
     }
 
-    formInputs.tags.addEventListener("input", (e) => fetchTags(e.target.value));
+    function setupIngredientSearch(inputElement, suggestionList) {
+        inputElement.addEventListener("input", () => {
+            fetchIngredients(inputElement.value, (ingredients) => {
+                suggestionList.innerHTML = "";
+                ingredients.slice(0, 5).forEach(ingredient => {
+                    const item = document.createElement("li");
+                    item.textContent = ingredient.name;
+                    item.addEventListener("click", () => {
+                        inputElement.value = ingredient.name;
+                        suggestionList.innerHTML = "";
+                    });
+                    suggestionList.appendChild(item);
+                });
+                if (ingredients.length === 0) {
+                    const searchDbItem = document.createElement("li");
+                    searchDbItem.textContent = `Search ingredient database`;
+                    searchDbItem.addEventListener("click", () => {
+                        fetchIngredients(inputElement.value, (dbIngredients) => {
+                            suggestionList.innerHTML = "";
+                            dbIngredients.slice(0, 5).forEach(ingredient => {
+                                const dbItem = document.createElement("li");
+                                dbItem.textContent = ingredient.name;
+                                dbItem.addEventListener("click", () => {
+                                    inputElement.value = ingredient.name;
+                                    suggestionList.innerHTML = "";
+                                });
+                                suggestionList.appendChild(dbItem);
+                            });
+                        });
+                    });
+                    suggestionList.appendChild(searchDbItem);
+                }
+            });
+        });
+    }
 
     function loadIngredients(ingredients) {
         ingredientsTable.innerHTML = "";
@@ -130,20 +151,6 @@ document.addEventListener("DOMContentLoaded", () => {
         stepsTable.innerHTML = "";
         steps.forEach(addStepRow);
         addStepRow();
-    }
-
-    function addIngredientRow(data = {}) {
-        const row = document.createElement("tr");
-
-        row.innerHTML = `
-            <td><input type="text" class="ingredient-name" placeholder="Ingredient" value="${data.name || ""}"></td>
-            <td><input type="number" class="ingredient-quantity" placeholder="Quantity" value="${data.quantity || ""}"></td>
-            <td><input type="text" class="ingredient-unit" placeholder="Unit" value="${data.unit || ""}"></td>
-            <td><button class="delete-ingredient">X</button></td>
-        `;
-
-        row.querySelector(".delete-ingredient").addEventListener("click", () => deleteRow(row, ingredientsTable));
-        ingredientsTable.appendChild(row);
     }
 
     function addStepRow(data = {}) {
@@ -168,6 +175,11 @@ document.addEventListener("DOMContentLoaded", () => {
             <button class="delete-step">X</button>
         `;
 
+        const searchInput = row.querySelector(".step-ingredient-search");
+        const suggestionList = row.querySelector(".ingredient-suggestions");
+
+        setupIngredientSearch(searchInput, suggestionList);
+
         row.querySelector(".delete-step").addEventListener("click", () => deleteRow(row, stepsTable));
         stepsTable.appendChild(row);
     }
@@ -188,8 +200,8 @@ document.addEventListener("DOMContentLoaded", () => {
             cookTime: formInputs.cookTime.value.trim(),
             totalTime: formInputs.totalTime.value.trim(),
             notes: formInputs.notes.value.trim(),
-            ingredients: getIngredientsData(),
-            steps: getStepsData(),
+            ingredients: [],
+            steps: [],
         };
 
         if (!newRecipe.name) {
