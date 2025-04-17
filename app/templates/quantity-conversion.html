@@ -1,90 +1,69 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quantity Conversion</title>
-    <link rel="stylesheet" href="/static/css/style.css">
-</head>
-<body>
-    <div class="container">
-        <h1>Quantity Conversion Table</h1>
+{% extends "index.html" %}
+{% block content %}
+<div class="content-wrapper">
+    <div class="conversion-controls">
+        <div class="search-container">
+            <input type="text" id="search-input" placeholder="Search conversions...">
+            <button id="add-entry-button" class="primary-button">Add Conversion</button>
+        </div>
         
-        <!-- Unit Conversion Calculator -->
-        <div class="conversion-calculator">
-            <h2>Convert Units</h2>
+        <div class="filter-container">
+            <h4>Filter by Reference Unit:</h4>
+            <div id="type-filters" class="reference-filters"></div>
+        </div>
+
+        <div class="calculator-container">
+            <h3>Conversion Calculator</h3>
             <div class="calculator-form">
                 <input type="number" id="convert-amount" placeholder="Amount">
                 <select id="from-unit"></select>
-                <span>to</span>
+                <span class="arrow">➜</span>
                 <select id="to-unit"></select>
-                <button id="convert-button">Convert</button>
-                <div id="conversion-result"></div>
+                <button id="convert-button" class="primary-button">Convert</button>
             </div>
+            <div id="conversion-result" class="result"></div>
         </div>
+    </div>
 
-        <div class="filter-section">
-            <div id="type-filters">
-                <!-- Unit type filters will be added dynamically -->
-            </div>
-            <div id="checkbox-filters">
-                <!-- Reference unit filters will be added dynamically -->
-            </div>
-            <input type="text" id="search-input" placeholder="Search conversions...">
-        </div>
-        
+    <div class="table-container">
         <table id="conversion-table">
             <thead>
                 <tr>
-                    <th data-column="unit_name">Unit Name</th>
-                    <th data-column="reference_unit_amount">Reference Unit Amount</th>
-                    <th data-column="reference_unit_name">Reference Unit Name</th>
-                    <th data-column="unit_type">Unit Type</th>
+                    <th data-column="unit_name">Unit</th>
+                    <th data-column="reference_unit_amount">Amount</th>
+                    <th data-column="reference_unit_name">Reference Unit</th>
                     <th>Actions</th>
                 </tr>
             </thead>
-            <tbody>
-                <!-- Rows will be dynamically populated -->
-            </tbody>
+            <tbody></tbody>
         </table>
-        
-        <button id="add-entry-button">Add New Conversion</button>
     </div>
-    
-    <!-- Modal for Adding/Editing Conversions -->
-    <div id="conversion-modal" class="modal">
-        <div class="modal-content">
+</div>
+
+<div id="conversion-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="modal-title">Add Conversion</h2>
             <span class="close-button">&times;</span>
-            <h2 id="modal-title">Add/Edit Conversion</h2>
+        </div>
+        <div class="modal-body">
             <div class="form-group">
-                <label for="unit">Unit:</label>
-                <input type="text" id="unit">
-            </div>
-            <div class="form-group">
-                <label for="reference-unit">Reference Unit Name:</label>
-                <input type="text" id="reference-unit">
+                <label for="unit">Unit Name:</label>
+                <input type="text" id="unit" required>
             </div>
             <div class="form-group">
                 <label for="value">Reference Unit Amount:</label>
-                <input type="number" id="value">
+                <input type="number" id="value" required step="0.001">
             </div>
             <div class="form-group">
-                <label for="unit-type">Unit Type:</label>
-                <select id="unit-type">
-                    <option value="mass">Mass</option>
-                    <option value="volume">Volume</option>
-                    <option value="length">Length</option>
-                    <option value="count">Count</option>
-                    <option value="temperature">Temperature</option>
-                </select>
-            </div>
-            <div class="modal-actions">
-                <button id="save-button" class="primary-button">Save</button>
-                <button id="cancel-button" class="secondary-button">Cancel</button>
+                <label for="reference-unit">Reference Unit:</label>
+                <input type="text" id="reference-unit" required>
             </div>
         </div>
-    </div>    
-    
-    <script src="/static/js/quantity-conversion.js"></script>
-</body>
-</html>
+        <div class="modal-footer">
+            <button id="cancel-button" class="secondary-button">Cancel</button>
+            <button id="save-button" class="primary-button">Save</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
