@@ -3,18 +3,19 @@ from app.models import db, QuantityConversion
 
 bp = Blueprint("quantity_conversions", __name__, url_prefix="/api/quantity-conversions")
 
-# Get all quantity conversions
 @bp.route("/", methods=["GET"])
 def get_conversions():
     conversions = QuantityConversion.query.all()
     return jsonify([conversion.to_dict() for conversion in conversions])
 
-# Add a new quantity conversion
 @bp.route("/", methods=["POST"])
 def add_conversion():
     data = request.json
-    if not data or "unit_name" not in data or "reference_unit_name" not in data or "reference_unit_amount" not in data:
-        return jsonify({"error": "Invalid input. 'unit_name', 'reference_unit_name', and 'reference_unit_amount' are required."}), 400
+    required_fields = ['unit_name', 'reference_unit_name', 'reference_unit_amount', 'unit_type']
+    if not data or not all(field in data for field in required_fields):
+        return jsonify({
+            "error": "Invalid input. 'unit_name', 'reference_unit_name', 'reference_unit_amount', and 'unit_type' are required."
+        }), 400
 
     existing_conversion = QuantityConversion.query.filter_by(unit_name=data["unit_name"]).first()
     if existing_conversion:
@@ -24,12 +25,12 @@ def add_conversion():
         unit_name=data["unit_name"],
         reference_unit_name=data["reference_unit_name"],
         reference_unit_amount=data["reference_unit_amount"],
+        unit_type=data["unit_type"]
     )
     db.session.add(conversion)
     db.session.commit()
     return jsonify({"message": "Conversion added successfully!", "data": conversion.to_dict()}), 201
 
-# Update an existing quantity conversion
 @bp.route("/<unit_name>", methods=["PUT"])
 def update_conversion(unit_name):
     data = request.json
@@ -38,15 +39,13 @@ def update_conversion(unit_name):
         return jsonify({"error": f"Conversion with unit '{unit_name}' not found."}), 404
 
     # Update fields
-    if "reference_unit_name" in data:
-        conversion.reference_unit_name = data["reference_unit_name"]
-    if "reference_unit_amount" in data:
-        conversion.reference_unit_amount = data["reference_unit_amount"]
+    for field in ['reference_unit_name', 'reference_unit_amount', 'unit_type']:
+        if field in data:
+            setattr(conversion, field, data[field])
 
     db.session.commit()
     return jsonify({"message": "Conversion updated successfully!", "data": conversion.to_dict()}), 200
 
-# Delete a quantity conversion
 @bp.route("/<int:unit_id>", methods=["DELETE"])
 def delete_conversion(unit_id):
     conversion = QuantityConversion.query.filter_by(id=unit_id).first()
@@ -56,3 +55,30 @@ def delete_conversion(unit_id):
     db.session.delete(conversion)
     db.session.commit()
     return jsonify({"message": f"Conversion with id '{unit_id}' deleted."}), 200
+
+@bp.route("/convert", methods=["POST"])
+def convert_units():
+    data = request.json
+    if not data or not all(k in data for k in ['amount', 'from_unit', 'to_unit']):
+        return jsonify({
+            "error": "Invalid input. 'amount', 'from_unit', and 'to_unit' are required."
+        }), 400
+
+    try:
+        amount = float(data['amount'])
+    except ValueError:
+        return jsonify({"error": "Amount must be a number"}), 400
+
+    result = QuantityConversion.convert_units(amount, data['from_unit'], data['to_unit'])
+    
+    if result is None:
+        return jsonify({
+            "error": "Cannot convert between these units. They may be incompatible or not found."
+        }), 400
+
+    return jsonify({
+        "result": result,
+        "from_unit": data['from_unit'],
+        "to_unit": data['to_unit'],
+        "original_amount": amount
+    })

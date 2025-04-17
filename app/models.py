@@ -28,6 +28,7 @@ class QuantityConversion(db.Model):
     unit_name = db.Column(db.String(50), nullable=False, unique=True)
     reference_unit_name = db.Column(db.String(50), nullable=False)
     reference_unit_amount = db.Column(db.Float, nullable=False)
+    unit_type = db.Column(db.String(20), nullable=False)  # mass, volume, count, etc.
 
     def to_dict(self):
         return {
@@ -35,7 +36,26 @@ class QuantityConversion(db.Model):
             "unit_name": self.unit_name,
             "reference_unit_name": self.reference_unit_name,
             "reference_unit_amount": self.reference_unit_amount,
+            "unit_type": self.unit_type
         }
+
+    @staticmethod
+    def convert_units(amount, from_unit, to_unit):
+        """Convert between compatible units"""
+        from_conv = QuantityConversion.query.filter_by(unit_name=from_unit).first()
+        to_conv = QuantityConversion.query.filter_by(unit_name=to_unit).first()
+        
+        if not from_conv or not to_conv:
+            return None
+            
+        if from_conv.unit_type != to_conv.unit_type:
+            return None
+            
+        # Convert to reference unit first
+        reference_amount = amount * from_conv.reference_unit_amount
+        
+        # Then convert to target unit
+        return reference_amount / to_conv.reference_unit_amount
 
 class Ingredients(db.Model):
     __tablename__ = "ingredients"

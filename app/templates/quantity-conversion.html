@@ -9,18 +9,37 @@
 <body>
     <div class="container">
         <h1>Quantity Conversion Table</h1>
+        
+        <!-- Unit Conversion Calculator -->
+        <div class="conversion-calculator">
+            <h2>Convert Units</h2>
+            <div class="calculator-form">
+                <input type="number" id="convert-amount" placeholder="Amount">
+                <select id="from-unit"></select>
+                <span>to</span>
+                <select id="to-unit"></select>
+                <button id="convert-button">Convert</button>
+                <div id="conversion-result"></div>
+            </div>
+        </div>
+
         <div class="filter-section">
+            <div id="type-filters">
+                <!-- Unit type filters will be added dynamically -->
+            </div>
             <div id="checkbox-filters">
-                <!-- Checkboxes for base unit filtering will be added dynamically -->
+                <!-- Reference unit filters will be added dynamically -->
             </div>
             <input type="text" id="search-input" placeholder="Search conversions...">
         </div>
+        
         <table id="conversion-table">
             <thead>
                 <tr>
                     <th data-column="unit_name">Unit Name</th>
                     <th data-column="reference_unit_amount">Reference Unit Amount</th>
                     <th data-column="reference_unit_name">Reference Unit Name</th>
+                    <th data-column="unit_type">Unit Type</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -28,6 +47,7 @@
                 <!-- Rows will be dynamically populated -->
             </tbody>
         </table>
+        
         <button id="add-entry-button">Add New Conversion</button>
     </div>
     
@@ -48,13 +68,23 @@
                 <label for="value">Reference Unit Amount:</label>
                 <input type="number" id="value">
             </div>
+            <div class="form-group">
+                <label for="unit-type">Unit Type:</label>
+                <select id="unit-type">
+                    <option value="mass">Mass</option>
+                    <option value="volume">Volume</option>
+                    <option value="length">Length</option>
+                    <option value="count">Count</option>
+                    <option value="temperature">Temperature</option>
+                </select>
+            </div>
             <div class="modal-actions">
                 <button id="save-button" class="primary-button">Save</button>
                 <button id="cancel-button" class="secondary-button">Cancel</button>
             </div>
         </div>
     </div>    
-
+    
     <script src="/static/js/quantity-conversion.js"></script>
 </body>
 </html>

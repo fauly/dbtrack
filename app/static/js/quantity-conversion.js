@@ -8,53 +8,96 @@ document.addEventListener("DOMContentLoaded", () => {
     const unitInput = document.getElementById("unit");
     const referenceUnitInput = document.getElementById("reference-unit");
     const valueInput = document.getElementById("value");
+    const unitTypeInput = document.getElementById("unit-type");
     const saveButton = document.getElementById("save-button");
     const cancelButton = document.getElementById("cancel-button");
+    const typeFilters = document.getElementById("type-filters");
     const checkboxFilters = document.getElementById("checkbox-filters");
+    
+    // Conversion calculator elements
+    const convertAmount = document.getElementById("convert-amount");
+    const fromUnit = document.getElementById("from-unit");
+    const toUnit = document.getElementById("to-unit");
+    const convertButton = document.getElementById("convert-button");
+    const conversionResult = document.getElementById("conversion-result");
 
     let conversionData = [];
     let editingIndex = null;
     let sortOrder = {};
-    let activeFilters = [];
+    let activeTypeFilters = new Set();
+    let activeReferenceFilters = new Set();
 
-    // Ensure modal is hidden by default
     modal.style.display = "none";
 
     async function fetchConversions() {
         try {
             const response = await fetch("/api/quantity-conversions/");
             conversionData = await response.json();
-            generateCheckboxFilters();
+            generateFilters();
+            populateConversionSelects();
             renderTable();
         } catch (error) {
             console.error("Error fetching conversions:", error);
         }
     }
 
-    function generateCheckboxFilters() {
+    function generateFilters() {
+        // Generate unit type filters
+        const uniqueTypes = [...new Set(conversionData.map(item => item.unit_type))];
+        typeFilters.innerHTML = uniqueTypes
+            .map(type => `
+                <label class="type-filter">
+                    <input type="checkbox" value="${type}" checked>
+                    ${type}
+                </label>
+            `).join("");
+        activeTypeFilters = new Set(uniqueTypes);
+
+        // Generate reference unit filters
         const uniqueUnits = [...new Set(conversionData.map(item => item.reference_unit_name))];
         checkboxFilters.innerHTML = uniqueUnits
-            .map(
-                unit => `
+            .map(unit => `
                 <label>
                     <input type="checkbox" value="${unit}" checked>
                     ${unit}
-                </label>`
-            )
-            .join("");
-        activeFilters = uniqueUnits;
+                </label>
+            `).join("");
+        activeReferenceFilters = new Set(uniqueUnits);
 
-        // Event listener for checkboxes
+        // Add event listeners
+        typeFilters.querySelectorAll("input").forEach(checkbox => {
+            checkbox.addEventListener("change", handleFilterChange);
+        });
         checkboxFilters.querySelectorAll("input").forEach(checkbox => {
-            checkbox.addEventListener("change", handleCheckboxChange);
+            checkbox.addEventListener("change", handleFilterChange);
         });
     }
 
-    function handleCheckboxChange() {
-        activeFilters = Array.from(checkboxFilters.querySelectorAll("input:checked")).map(
-            checkbox => checkbox.value
+    function handleFilterChange() {
+        activeTypeFilters = new Set(
+            Array.from(typeFilters.querySelectorAll("input:checked")).map(cb => cb.value)
+        );
+        activeReferenceFilters = new Set(
+            Array.from(checkboxFilters.querySelectorAll("input:checked")).map(cb => cb.value)
         );
         renderTable();
+        populateConversionSelects();
+    }
+
+    function populateConversionSelects() {
+        const units = conversionData
+            .filter(item => activeTypeFilters.has(item.unit_type))
+            .map(item => item.unit_name);
+
+        [fromUnit, toUnit].forEach(select => {
+            const currentValue = select.value;
+            select.innerHTML = units
+                .map(unit => `<option value="${unit}">${unit}</option>`)
+                .join("");
+            if (units.includes(currentValue)) {
+                select.value = currentValue;
+            }
+        });
     }
 
     function renderTable() {
@@ -62,7 +105,8 @@ document.addEventListener("DOMContentLoaded", () => {
         const filteredData = conversionData
             .filter(item =>
                 item.unit_name.toLowerCase().includes(searchInput.value.toLowerCase()) &&
-                activeFilters.includes(item.reference_unit_name)
+                activeTypeFilters.has(item.unit_type) &&
+                activeReferenceFilters.has(item.reference_unit_name)
             )
             .sort((a, b) => {
                 const { column, order } = sortOrder;
@@ -78,6 +122,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 <td class="editable" data-field="unit_name" data-id="${item.id}">${item.unit_name}</td>
                 <td class="editable" data-field="reference_unit_amount" data-id="${item.id}">${item.reference_unit_amount}</td>
                 <td class="editable" data-field="reference_unit_name" data-id="${item.id}">${item.reference_unit_name}</td>
+                <td class="editable" data-field="unit_type" data-id="${item.id}">${item.unit_type}</td>
                 <td>
                     <button data-id="${item.id}" class="edit-button">✏️</button>
                     <button data-id="${item.id}" class="delete-button">🗑️</button>
@@ -86,10 +131,42 @@ document.addEventListener("DOMContentLoaded", () => {
             tableBody.appendChild(row);
         });
 
-        // Add double-click handlers to editable cells
         document.querySelectorAll('.editable').forEach(cell => {
             cell.addEventListener('dblclick', handleCellDblClick);
         });
+    }
+
+    async function handleConversion() {
+        const amount = parseFloat(convertAmount.value);
+        if (isNaN(amount)) {
+            conversionResult.textContent = "Please enter a valid number";
+            return;
+        }
+
+        try {
+            const response = await fetch("/api/quantity-conversions/convert", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    amount: amount,
+                    from_unit: fromUnit.value,
+                    to_unit: toUnit.value
+                })
+            });
+
+            const data = await response.json();
+            if (response.ok) {
+                conversionResult.textContent = `${amount} ${fromUnit.value} = ${data.result.toFixed(4)} ${toUnit.value}`;
+                conversionResult.classList.remove("error");
+            } else {
+                conversionResult.textContent = data.error;
+                conversionResult.classList.add("error");
+            }
+        } catch (error) {
+            console.error("Error converting units:", error);
+            conversionResult.textContent = "Error converting units";
+            conversionResult.classList.add("error");
+        }
     }
 
     function handleCellDblClick(e) {
@@ -121,7 +198,8 @@ document.addEventListener("DOMContentLoaded", () => {
                     const updatedData = {
                         unit_name: item.unit_name,
                         reference_unit_name: item.reference_unit_name,
-                        reference_unit_amount: item.reference_unit_amount
+                        reference_unit_amount: item.reference_unit_amount,
+                        unit_type: item.unit_type
                     };
 
                     // Update the specific field
@@ -167,10 +245,11 @@ document.addEventListener("DOMContentLoaded", () => {
         modalTitle.textContent = editingIndex !== null ? "Edit Conversion" : "Add Conversion";
         const entry = editingIndex !== null
             ? conversionData[editingIndex]
-            : { unit_name: "", reference_unit_name: "", reference_unit_amount: "" };
+            : { unit_name: "", reference_unit_name: "", reference_unit_amount: "", unit_type: "" };
         unitInput.value = entry.unit_name;
         referenceUnitInput.value = entry.reference_unit_name;
         valueInput.value = entry.reference_unit_amount;
+        unitTypeInput.value = entry.unit_type;
         modal.style.display = "block";
     }
 
@@ -191,18 +270,17 @@ document.addEventListener("DOMContentLoaded", () => {
             unit_name: unitInput.value.trim(),
             reference_unit_name: referenceUnitInput.value.trim(),
             reference_unit_amount: parseFloat(valueInput.value),
+            unit_type: unitTypeInput.value
         };
 
-        if (!newEntry.unit_name || !newEntry.reference_unit_name || isNaN(newEntry.reference_unit_amount)) {
+        if (!newEntry.unit_name || !newEntry.reference_unit_name || 
+            isNaN(newEntry.reference_unit_amount) || !newEntry.unit_type) {
             alert("All fields are required and 'reference unit amount' must be a valid number.");
             return;
         }
 
-        console.log("Saving entry:", newEntry);
-
         try {
             if (editingIndex !== null) {
-                // Update existing entry
                 const response = await fetch(
                     `/api/quantity-conversions/${conversionData[editingIndex].unit_name}`,
                     {
@@ -213,7 +291,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 );
                 if (!response.ok) throw new Error("Failed to update conversion.");
             } else {
-                // Add new entry
                 const response = await fetch("/api/quantity-conversions/", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -261,7 +338,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 .catch(error => console.error("Error deleting entry:", error));
         }
     });
-    
+
+    convertButton.addEventListener("click", handleConversion);
 
     fetchConversions();
 });

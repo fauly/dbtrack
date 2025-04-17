@@ -577,3 +577,183 @@ input[type="number"], textarea {
     border: 1px solid #ccc;
     border-radius: 4px;
 }
+
+/* Recipe form header */
+.recipe-form-header {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+/* Tag styles */
+.tag {
+    display: inline-flex;
+    align-items: center;
+    background: #e9ecef;
+    border-radius: 4px;
+    padding: 0.25rem 0.5rem;
+    margin: 0.25rem;
+}
+
+.tag .remove-tag {
+    background: none;
+    border: none;
+    margin-left: 0.5rem;
+    cursor: pointer;
+    color: #666;
+}
+
+.tag .remove-tag:hover {
+    color: #dc3545;
+}
+
+#tag-container {
+    margin-top: 0.5rem;
+    min-height: 2rem;
+}
+
+/* Suggestions list */
+.suggestions-list {
+    position: absolute;
+    z-index: 1000;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    max-height: 200px;
+    overflow-y: auto;
+    width: 100%;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.suggestion-item {
+    padding: 0.5rem;
+    cursor: pointer;
+}
+
+.suggestion-item:hover,
+.suggestion-item.active {
+    background: #f8f9fa;
+}
+
+/* Recipe ingredients table */
+.recipe-ingredients {
+    margin: 1rem 0;
+}
+
+.ingredient-row {
+    display: grid;
+    grid-template-columns: 1fr auto auto auto;
+    gap: 0.5rem;
+    align-items: center;
+    padding: 0.5rem;
+    border-bottom: 1px solid #eee;
+}
+
+.ingredient-row:last-child {
+    border-bottom: none;
+}
+
+.ingredient-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+/* Steps and sections improvements */
+.recipe-section, .recipe-step {
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    margin: 0.5rem 0;
+}
+
+.step-content, .section-content {
+    padding: 1rem;
+}
+
+.step-ingredients-table {
+    margin-top: 1rem;
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.step-ingredients-table th,
+.step-ingredients-table td {
+    padding: 0.5rem;
+    border: 1px solid #eee;
+}
+
+.step-ingredient-input {
+    display: grid;
+    grid-template-columns: 1fr auto auto auto;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    align-items: start;
+}
+
+/* Conversion Calculator */
+.conversion-calculator {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.calculator-form {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.calculator-form input[type="number"] {
+    width: 120px;
+}
+
+.calculator-form select {
+    min-width: 150px;
+}
+
+#conversion-result {
+    margin-top: 0.5rem;
+    font-size: 1.1em;
+    font-weight: 500;
+}
+
+#conversion-result.error {
+    color: #dc3545;
+}
+
+/* Filter Section */
+.filter-section {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    align-items: start;
+    flex-wrap: wrap;
+}
+
+#type-filters, #checkbox-filters {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.type-filter {
+    background: #e9ecef;
+    padding: 0.25rem 0.75rem;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.type-filter input[type="checkbox"] {
+    margin: 0;
+}
+
+#search-input {
+    min-width: 200px;
+    margin-left: auto;
+}

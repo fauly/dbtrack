@@ -330,8 +330,51 @@ function initializeRecipes() {
         }
     }
 
+    async function fetchServingTypes(query, callback) {
+        if (query.length < 2) {
+            callback([]);
+            return;
+        }
+        try {
+            const response = await fetch(`/api/recipes/serving-types/search?query=${query}`);
+            const types = await response.json();
+            types.push(`Create "${query}" as new serving type`);
+            callback(types.slice(0, 5));
+        } catch (error) {
+            console.error("Error fetching serving types:", error);
+            callback([]);
+        }
+    }
+
     function selectTag(tag) {
-        console.log("Tag selected:", tag);
+        if (tag.startsWith('Create a new tag')) {
+            const newTag = tag.slice(17, -1);
+            fetch('/api/tags', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: newTag })
+            })
+            .then(() => addTagToContainer(newTag));
+        } else {
+            addTagToContainer(tag);
+        }
+    }
+
+    function addTagToContainer(tag) {
+        const container = document.getElementById('tag-container');
+        const tagElement = document.createElement('span');
+        tagElement.className = 'tag';
+        tagElement.innerHTML = `
+            ${tag}
+            <button class="remove-tag">×</button>
+        `;
+        
+        tagElement.querySelector('.remove-tag').addEventListener('click', () => {
+            tagElement.remove();
+        });
+        
+        container.appendChild(tagElement);
+        formInputs.tags.value = '';
     }
 
     function selectIngredient(ingredient) {
@@ -343,6 +386,24 @@ function initializeRecipes() {
     document.querySelectorAll(".step-ingredient-search").forEach(inputElement => {
         const suggestionList = inputElement.nextElementSibling;
         setupAutosuggest(inputElement, suggestionList, fetchIngredients, selectIngredient);
+    });
+
+    setupAutosuggest(formInputs.servingsType, document.getElementById('servings-suggestions'), fetchServingTypes, async (type) => {
+        if (type.startsWith('Create "')) {
+            const newType = type.slice(8, -20);
+            try {
+                await fetch('/api/recipes/serving-types', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: newType })
+                });
+                formInputs.servingsType.value = newType;
+            } catch (error) {
+                console.error('Error creating serving type:', error);
+            }
+        } else {
+            formInputs.servingsType.value = type;
+        }
     });
 
     if (addRecipeButton) {
