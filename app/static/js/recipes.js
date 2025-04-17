@@ -65,6 +65,7 @@ function initializeRecipes() {
     const addStepButton = document.getElementById("add-step");
     const ingredientTypeSelect = document.getElementById("ingredient-type");
     const ingredientsTable = document.getElementById("ingredient-table");
+    const tagSuggestions = document.getElementById("tag-suggestions");
 
     // Validate critical elements exist
     if (!modal || !stepsTree || !sectionTemplate || !stepTemplate) {
