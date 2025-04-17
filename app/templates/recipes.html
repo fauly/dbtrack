@@ -35,37 +35,47 @@
             <span class="close-button">&times;</span>
             <h2 id="modal-title">Add/Edit Recipe</h2>
 
-            <div class="form-group">
-                <label for="name">Recipe Name:</label>
-                <input type="text" id="name">
-            </div>
+            <div class="recipe-form-grid">
+                <div class="form-section">
+                    <div class="form-group">
+                        <label for="name">Recipe Name:</label>
+                        <input type="text" id="name">
+                    </div>
 
-            <div class="form-group">
-                <label for="prep-time">Prep Time:</label>
-                <input type="text" id="prep-time">
-            </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="prep-time">Prep Time:</label>
+                            <input type="text" id="prep-time">
+                        </div>
 
-            <div class="form-group">
-                <label for="cook-time">Cook Time:</label>
-                <input type="text" id="cook-time">
-            </div>
+                        <div class="form-group">
+                            <label for="cook-time">Cook Time:</label>
+                            <input type="text" id="cook-time">
+                        </div>
+                    </div>
 
-            <div class="form-group">
-                <label for="servings-type">Servings Type:</label>
-                <input type="text" id="servings-type">
-                <ul id="servings-suggestions" class="suggestions-list"></ul>
-            </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="servings-type">Servings Type:</label>
+                            <input type="text" id="servings-type">
+                            <ul id="servings-suggestions" class="suggestions-list"></ul>
+                        </div>
 
-            <div class="form-group">
-                <label for="servings-count">Servings Count:</label>
-                <input type="number" id="servings-count" min="1">
-            </div>
+                        <div class="form-group">
+                            <label for="servings-count">Servings Count:</label>
+                            <input type="number" id="servings-count" min="1">
+                        </div>
+                    </div>
+                </div>
 
-            <div class="form-group">
-                <label>Tags:</label>
-                <input type="text" id="tag-input" placeholder="Type a tag...">
-                <ul id="tag-suggestions" class="suggestions-list"></ul>
-                <div id="tag-container"></div>
+                <div class="form-section tags-section">
+                    <div class="form-group">
+                        <label>Tags:</label>
+                        <input type="text" id="tag-input" placeholder="Type a tag...">
+                        <ul id="tag-suggestions" class="suggestions-list"></ul>
+                        <div id="tag-container"></div>
+                    </div>
+                </div>
             </div>
 
             <h3>Ingredients</h3>
