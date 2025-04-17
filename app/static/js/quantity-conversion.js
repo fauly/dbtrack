@@ -175,10 +175,25 @@ document.addEventListener("DOMContentLoaded", () => {
         const field = cell.dataset.field;
         const id = cell.dataset.id;
 
-        // Create input element
-        const input = document.createElement('input');
-        input.type = field === 'reference_unit_amount' ? 'number' : 'text';
-        input.value = originalValue;
+        let input;
+        if (field === 'unit_type') {
+            // Create select element for unit type
+            input = document.createElement('select');
+            const uniqueTypes = [...new Set(conversionData.map(item => item.unit_type))];
+            uniqueTypes.forEach(type => {
+                const option = document.createElement('option');
+                option.value = type;
+                option.textContent = type;
+                input.appendChild(option);
+            });
+            input.value = originalValue;
+        } else {
+            // Create regular input for other fields
+            input = document.createElement('input');
+            input.type = field === 'reference_unit_amount' ? 'number' : 'text';
+            input.value = originalValue;
+        }
+        
         input.style.width = '90%';
 
         // Replace cell content with input
@@ -186,7 +201,7 @@ document.addEventListener("DOMContentLoaded", () => {
         cell.appendChild(input);
         input.focus();
 
-        // Handle input blur (when focus is lost)
+        // Handle input/select blur (when focus is lost)
         input.addEventListener('blur', async () => {
             const newValue = input.value.trim();
             
