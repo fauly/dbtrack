@@ -58,6 +58,7 @@ function initializeRecipes() {
     const addRecipeButton = document.getElementById("add-recipe-button");
     const recipeTableBody = document.querySelector("#recipe-table tbody");
     const saveButton = document.getElementById("save-button");
+    const cancelButton = document.getElementById("cancel-button");
     const sectionTemplate = document.getElementById("section-template");
     const stepTemplate = document.getElementById("step-template");
     const stepsTree = document.getElementById("steps-tree");
@@ -66,6 +67,7 @@ function initializeRecipes() {
     const ingredientTypeSelect = document.getElementById("ingredient-type");
     const ingredientsTable = document.getElementById("ingredient-table");
     const tagSuggestions = document.getElementById("tag-suggestions");
+    const stepsTable = document.getElementById("steps-table");
 
     // Validate critical elements exist
     if (!modal || !stepsTree || !sectionTemplate || !stepTemplate) {
@@ -327,6 +329,9 @@ function initializeRecipes() {
     }
     if (saveButton) {
         saveButton.addEventListener("click", saveEntry);
+    }
+    if (cancelButton) {
+        cancelButton.addEventListener("click", closeModal);
     }
     if (addSectionButton) {
         addSectionButton.addEventListener("click", addSection);
@@ -686,8 +691,7 @@ function initializeRecipes() {
         };
     }
 
-    // Update save handler
-    saveButton.addEventListener("click", async () => {
+    async function saveEntry() {
         const recipeData = gatherRecipeData();
         
         if (!recipeData.name || !recipeData.servings_type || !recipeData.servings_count) {
@@ -716,7 +720,7 @@ function initializeRecipes() {
             console.error("Error saving recipe:", error);
             alert("Failed to save the recipe. Check the console for details.");
         }
-    });
+    }
 
     function initializeSortable(element) {
         return new Sortable(element, {
