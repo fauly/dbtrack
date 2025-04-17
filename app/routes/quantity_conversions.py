@@ -6,7 +6,7 @@ bp = Blueprint("quantity_conversions", __name__, url_prefix="/api/quantity-conve
 @bp.route("/", methods=["GET"])
 def get_conversions():
     conversions = QuantityConversion.query.all()
-    return jsonify([conversion.to_dict() for conversion in conversions])
+    return jsonify({"conversions": [conversion.to_dict() for conversion in conversions]})
 
 @bp.route("/", methods=["POST"])
 def add_conversion():

@@ -1,28 +1,28 @@
 document.addEventListener('DOMContentLoaded', function() {
-    const fromUnitSelect = document.getElementById('from_unit');
-    const toUnitSelect = document.getElementById('to_unit');
-    const fromValueInput = document.getElementById('from_value');
-    const conversionForm = document.getElementById('conversion-form');
+    const fromUnitSelect = document.getElementById('from-unit');
+    const toUnitSelect = document.getElementById('to-unit');
+    const convertAmount = document.getElementById('convert-amount');
+    const convertButton = document.getElementById('convert-button');
     const conversionResult = document.getElementById('conversion-result');
     const conversionTable = document.getElementById('conversion-table');
 
     // Load conversions on page load
     loadConversions();
 
-    conversionForm.addEventListener('submit', async function(e) {
+    convertButton.addEventListener('click', async function(e) {
         e.preventDefault();
         
         const fromUnit = fromUnitSelect.value;
         const toUnit = toUnitSelect.value;
-        const fromValue = fromValueInput.value;
+        const amount = convertAmount.value;
 
-        if (!fromUnit || !toUnit || !fromValue) {
+        if (!fromUnit || !toUnit || !amount) {
             showError('Please fill in all fields');
             return;
         }
 
         try {
-            const response = await fetch('/api/convert', {
+            const response = await fetch('/api/quantity-conversions/convert', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -30,13 +30,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 body: JSON.stringify({
                     from_unit: fromUnit,
                     to_unit: toUnit,
-                    value: fromValue
+                    amount: amount
                 })
             });
 
             const data = await response.json();
             if (response.ok) {
-                conversionResult.textContent = `${fromValue} ${fromUnit} = ${data.result} ${toUnit}`;
+                conversionResult.textContent = `${amount} ${fromUnit} = ${data.result} ${toUnit}`;
                 conversionResult.classList.remove('error');
             } else {
                 showError(data.error || 'Conversion failed');
@@ -48,7 +48,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     async function loadConversions() {
         try {
-            const response = await fetch('/api/quantity_conversions');
+            const response = await fetch('/api/quantity-conversions/');
             const data = await response.json();
             
             if (response.ok) {
@@ -69,9 +69,9 @@ document.addEventListener('DOMContentLoaded', function() {
         conversions.forEach(conversion => {
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td>${conversion.unit}</td>
-                <td>${conversion.reference_unit}</td>
-                <td>${conversion.conversion_factor}</td>
+                <td>${conversion.unit_name}</td>
+                <td>${conversion.reference_unit_amount}</td>
+                <td>${conversion.reference_unit_name}</td>
                 <td class="actions">
                     <button class="edit-button" onclick="editConversion(${conversion.id})"><i class="fas fa-edit"></i></button>
                     <button class="delete-button" onclick="deleteConversion(${conversion.id})"><i class="fas fa-trash"></i></button>
@@ -82,8 +82,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function updateUnitSelects(conversions) {
-        const units = [...new Set(conversions.map(c => c.unit))];
-        const referenceUnits = [...new Set(conversions.map(c => c.reference_unit))];
+        const units = [...new Set(conversions.map(c => c.unit_name))];
+        const referenceUnits = [...new Set(conversions.map(c => c.reference_unit_name))];
         const allUnits = [...new Set([...units, ...referenceUnits])];
 
         [fromUnitSelect, toUnitSelect].forEach(select => {
@@ -114,7 +114,7 @@ async function deleteConversion(id) {
     }
 
     try {
-        const response = await fetch(`/api/quantity_conversion/${id}`, {
+        const response = await fetch(`/api/quantity-conversions/${id}`, {
             method: 'DELETE'
         });
 
