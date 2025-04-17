@@ -1,10 +1,42 @@
 document.addEventListener("DOMContentLoaded", () => {
+    // Wait for Sortable library to load
+    if (typeof Sortable === 'undefined') {
+        const sortableScript = document.createElement('script');
+        sortableScript.src = "https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js";
+        document.head.appendChild(sortableScript);
+
+        sortableScript.onload = initializeRecipes;
+        return;
+    }
+
+    initializeRecipes();
+});
+
+function initializeRecipes() {
     const modal = document.getElementById("recipe-modal");
     const closeButton = document.querySelector(".close-button");
     const modalTitle = document.getElementById("modal-title");
     const addRecipeButton = document.getElementById("add-recipe-button");
     const recipeTableBody = document.querySelector("#recipe-table tbody");
     const saveButton = document.getElementById("save-button");
+    const sectionTemplate = document.getElementById("section-template");
+    const stepTemplate = document.getElementById("step-template");
+    const stepsTree = document.getElementById("steps-tree");
+    const addSectionButton = document.getElementById("add-section");
+    const addStepButton = document.getElementById("add-step");
+    const ingredientTypeSelect = document.getElementById("ingredient-type");
+    const ingredientsTable = document.getElementById("ingredient-table");
+
+    // Validate critical elements exist
+    if (!modal || !stepsTree || !sectionTemplate || !stepTemplate) {
+        console.error("Critical elements missing:", {
+            modal: !!modal,
+            stepsTree: !!stepsTree,
+            sectionTemplate: !!sectionTemplate,
+            stepTemplate: !!stepTemplate
+        });
+        return;
+    }
 
     const formInputs = {
         name: document.getElementById("name"),
@@ -17,20 +49,29 @@ document.addEventListener("DOMContentLoaded", () => {
         notes: document.getElementById("notes"),
     };
 
-    const ingredientsTable = document.getElementById("ingredient-table");
-    const stepsTable = document.getElementById("step-container");
-    const tagSuggestions = document.getElementById("tag-suggestions");
-
     let recipeData = [];
     let editingIndex = null;
     let activeSuggestionIndex = -1;
 
-    // Ensure modal is fullscreen
+    // Ensure modal is fullscreen and hidden by default
     modal.classList.add("fullscreen");
     modal.style.width = "100vw";
     modal.style.height = "100vh";
     modal.style.top = "0";
     modal.style.left = "0";
+    modal.style.display = "none";
+
+    // Initialize SortableJS for the main steps container
+    let mainSortable = new Sortable(stepsTree, {
+        group: 'nested',
+        animation: 150,
+        fallbackOnBody: true,
+        swapThreshold: 0.65,
+        handle: '.drag-handle',
+        dragClass: "sortable-drag",
+        ghostClass: "sortable-ghost",
+        chosenClass: "sortable-chosen"
+    });
 
     async function fetchRecipes() {
         try {
@@ -74,44 +115,46 @@ document.addEventListener("DOMContentLoaded", () => {
                     formInputs[key].value = entry[key] || "";
                 }
             }
-            loadIngredients(entry.ingredients);
+            loadIngredients(entry.ingredients || []);
             
             // Load steps and sections
-            function loadItems(items, container) {
-                items.forEach(item => {
-                    if (item.type === 'section') {
-                        const section = sectionTemplate.content.cloneNode(true).firstElementChild;
-                        section.querySelector('.section-title').value = item.title;
-                        const sectionContent = section.querySelector('.section-content');
-                        initializeSortable(sectionContent);
-                        loadItems(item.items, sectionContent);
-                        container.appendChild(section);
-                    } else {
-                        const step = stepTemplate.content.cloneNode(true).firstElementChild;
-                        step.querySelector('.step-title').value = item.title;
-                        step.querySelector('.step-description').value = item.description;
-                        setupStepIngredients(step);
-                        
-                        // Load step ingredients
-                        const tbody = step.querySelector('.step-ingredients-table tbody');
-                        item.ingredients.forEach(ing => {
-                            const row = document.createElement('tr');
-                            row.innerHTML = `
-                                <td>${ing.name}</td>
-                                <td>${ing.quantity}</td>
-                                <td>${ing.unit}</td>
-                                <td><button class="delete-ingredient">×</button></td>
-                            `;
-                            tbody.appendChild(row);
-                            row.querySelector('.delete-ingredient').addEventListener('click', () => row.remove());
-                        });
-                        
-                        container.appendChild(step);
-                    }
-                });
-            }
+            if (entry.steps) {
+                function loadItems(items, container) {
+                    items.forEach(item => {
+                        if (item.type === 'section') {
+                            const section = sectionTemplate.content.cloneNode(true).firstElementChild;
+                            section.querySelector('.section-title').value = item.title;
+                            const sectionContent = section.querySelector('.section-content');
+                            initializeSortable(sectionContent);
+                            loadItems(item.items, sectionContent);
+                            container.appendChild(section);
+                        } else {
+                            const step = stepTemplate.content.cloneNode(true).firstElementChild;
+                            step.querySelector('.step-title').value = item.title;
+                            step.querySelector('.step-description').value = item.description;
+                            setupStepIngredients(step);
+                            
+                            // Load step ingredients
+                            const tbody = step.querySelector('.step-ingredients-table tbody');
+                            item.ingredients.forEach(ing => {
+                                const row = document.createElement('tr');
+                                row.innerHTML = `
+                                    <td>${ing.name}</td>
+                                    <td>${ing.quantity}</td>
+                                    <td>${ing.unit}</td>
+                                    <td><button class="delete-ingredient">×</button></td>
+                                `;
+                                tbody.appendChild(row);
+                                row.querySelector('.delete-ingredient').addEventListener('click', () => row.remove());
+                            });
+                            
+                            container.appendChild(step);
+                        }
+                    });
+                }
 
-            loadItems(entry.steps, stepsTree);
+                loadItems(entry.steps, stepsTree);
+            }
         } else {
             for (const key in formInputs) {
                 if (formInputs[key]) {
@@ -236,9 +279,22 @@ document.addEventListener("DOMContentLoaded", () => {
         setupAutosuggest(inputElement, suggestionList, fetchIngredients, selectIngredient);
     });
 
-    addRecipeButton.addEventListener("click", openModal);
-    closeButton.addEventListener("click", closeModal);
-    saveButton.addEventListener("click", () => console.log("Saving..."));
+    if (addRecipeButton) {
+        addRecipeButton.addEventListener("click", () => openModal());
+    }
+    if (closeButton) {
+        closeButton.addEventListener("click", closeModal);
+    }
+    if (saveButton) {
+        saveButton.addEventListener("click", saveEntry);
+    }
+    if (addSectionButton) {
+        addSectionButton.addEventListener("click", addSection);
+    }
+    if (addStepButton) {
+        addStepButton.addEventListener("click", () => addStep());
+    }
+
     fetchRecipes();
 
     const ingredientList = [];
@@ -622,25 +678,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    const sectionTemplate = document.getElementById("section-template");
-    const stepTemplate = document.getElementById("step-template");
-    const stepsTree = document.getElementById("steps-tree");
-    const addSectionButton = document.getElementById("add-section");
-    const addStepButton = document.getElementById("add-step");
-    const ingredientTypeSelect = document.getElementById("ingredient-type");
-
-    // Initialize SortableJS for the main steps container
-    let mainSortable = new Sortable(stepsTree, {
-        group: 'nested',
-        animation: 150,
-        fallbackOnBody: true,
-        swapThreshold: 0.65,
-        handle: '.drag-handle',
-        dragClass: "sortable-drag",
-        ghostClass: "sortable-ghost",
-        chosenClass: "sortable-chosen"
-    });
-
     function initializeSortable(element) {
         return new Sortable(element, {
             group: 'nested',
@@ -791,6 +828,4 @@ document.addEventListener("DOMContentLoaded", () => {
     // Event listeners for adding sections and steps
     addSectionButton.addEventListener('click', addSection);
     addStepButton.addEventListener('click', () => addStep());
-
-    // ...rest of existing code...
-});
+}

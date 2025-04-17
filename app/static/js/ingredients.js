@@ -90,8 +90,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 <td class="editable" data-field="unit" data-id="${item.id}">${item.unit || ""}</td>
                 <td class="editable" data-field="cost" data-id="${item.id}">${item.cost || 0}</td>
                 <td>
-                    <button data-index="${index}" class="edit-button">Edit</button>
-                    <button data-index="${index}" class="delete-button">Delete</button>
+                    <button data-index="${index}" class="edit-button">✏️</button>
+                    <button data-index="${index}" class="delete-button">🗑️</button>
                 </td>
             `;
             tableBody.appendChild(row);
