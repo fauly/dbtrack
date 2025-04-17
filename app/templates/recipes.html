@@ -162,7 +162,8 @@
     </template>
 
     <!-- Load libraries first -->
-    <script src="static/js/lib/Sortable.min.js"></script>
+    <script src="/static/js/lib/Sortable.min.js"></script>
+    <script>console.log('Sortable loaded:', typeof Sortable !== 'undefined');</script>
     <!-- Then load our app code -->
     <script src="/static/js/recipes.js"></script>
 </body>

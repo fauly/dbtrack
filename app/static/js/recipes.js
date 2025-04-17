@@ -1,18 +1,24 @@
+console.log('recipes.js loading...');
+
 // Wait for both DOM and script dependencies to be ready
 function waitForElements(selectors, callback, maxAttempts = 50) {
+    console.log('Waiting for elements:', selectors);
     const check = (attempts) => {
         const elements = selectors.map(selector => document.querySelector(selector));
+        const results = selectors.reduce((acc, sel, i) => {
+            acc[sel] = !!elements[i];
+            return acc;
+        }, {});
+        
+        console.log('Element check attempt:', maxAttempts - attempts, results);
+        
         if (elements.every(el => el)) {
+            console.log('All elements found');
             callback(elements);
             return;
         }
         if (attempts <= 0) {
-            console.error('Could not find elements:', 
-                selectors.reduce((acc, sel, i) => {
-                    acc[sel] = !!elements[i];
-                    return acc;
-                }, {})
-            );
+            console.error('Could not find elements:', results);
             return;
         }
         setTimeout(() => check(attempts - 1), 100);
@@ -20,7 +26,11 @@ function waitForElements(selectors, callback, maxAttempts = 50) {
     check(maxAttempts);
 }
 
+// Initialize as soon as DOM is ready
 document.addEventListener("DOMContentLoaded", () => {
+    console.log('DOM loaded, checking Sortable...');
+    console.log('Sortable available:', typeof Sortable !== 'undefined');
+    
     const requiredElements = [
         '#recipe-modal',
         '#steps-tree',
@@ -29,33 +39,15 @@ document.addEventListener("DOMContentLoaded", () => {
     ];
 
     // First ensure Sortable is loaded
-    const ensureSortable = (callback) => {
-        if (typeof Sortable !== 'undefined') {
-            callback();
-            return;
-        }
-        
-        console.log('Waiting for Sortable to load...');
-        const checkSortable = (attempts = 50) => {
-            if (typeof Sortable !== 'undefined') {
-                callback();
-                return;
-            }
-            if (attempts <= 0) {
-                console.error('Sortable failed to load');
-                return;
-            }
-            setTimeout(() => checkSortable(attempts - 1), 100);
-        };
-        checkSortable();
-    };
+    if (typeof Sortable === 'undefined') {
+        console.error('Sortable not loaded! Make sure Sortable.min.js is loaded correctly.');
+        return;
+    }
 
-    // Then initialize the application once everything is ready
-    ensureSortable(() => {
-        waitForElements(requiredElements, ([modal, stepsTree, sectionTemplate, stepTemplate]) => {
-            console.log('All required elements found, initializing application...');
-            initializeRecipes();
-        });
+    // Then check for all required elements
+    waitForElements(requiredElements, ([modal, stepsTree, sectionTemplate, stepTemplate]) => {
+        console.log('All required elements found, initializing application...');
+        initializeRecipes();
     });
 });
 
@@ -170,6 +162,14 @@ function initializeRecipes() {
                     items.forEach(item => {
                         if (item.type === 'section') {
                             const section = sectionTemplate.content.cloneNode(true).firstElementChild;
+                            section.querySelector('.section-title').value = item.title;
+                            const sectionContent = section.querySelector('.section-content');
+                            initializeSortable(sectionContent);
+                            loadItems(item.items, sectionContent);
+                            container.appendChild(section);
+                        } else {
+                            const step = stepTemplate.content.cloneNode(true).firstElementChild;
+                            step.querySelector('.step-title').value = item.title;
                             section.querySelector('.section-title').value = item.title;
                             const sectionContent = section.querySelector('.section-content');
                             initializeSortable(sectionContent);
