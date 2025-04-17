@@ -115,13 +115,37 @@ function initializeRecipes() {
         chosenClass: "sortable-chosen"
     });
 
-    async function fetchRecipes() {
+    async function loadAllRecipes() {
         try {
             const response = await fetch("/api/recipes/");
             recipeData = await response.json();
             renderTable();
         } catch (error) {
             console.error("Error fetching recipes:", error);
+        }
+    }
+
+    async function fetchRecipes(query, callback) {
+        if (!callback) {
+            console.error('Callback is required for fetchRecipes');
+            return;
+        }
+        
+        if (query.length < 2) {
+            callback([]);
+            return;
+        }
+        try {
+            const response = await fetch(`/api/recipes/search?query=${query}`);
+            const recipes = await response.json();
+            callback(recipes.map(r => ({
+                id: r.id,
+                name: r.name,
+                type: 'recipe'
+            })));
+        } catch (error) {
+            console.error("Error fetching recipes:", error);
+            callback([]);
         }
     }
 
@@ -340,7 +364,7 @@ function initializeRecipes() {
         addStepButton.addEventListener("click", () => addStep());
     }
 
-    fetchRecipes();
+    loadAllRecipes();
 
     const ingredientList = [];
     
@@ -715,7 +739,7 @@ function initializeRecipes() {
             if (!response.ok) throw new Error("Failed to save recipe");
 
             closeModal();
-            fetchRecipes();
+            loadAllRecipes();
         } catch (error) {
             console.error("Error saving recipe:", error);
             alert("Failed to save the recipe. Check the console for details.");
