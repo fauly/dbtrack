@@ -109,79 +109,195 @@ document.addEventListener("DOMContentLoaded", () => {
         const field = cell.dataset.field;
         const id = cell.dataset.id;
 
-        // Create input element
-        const input = document.createElement('input');
-        
-        // Set input type based on field
-        switch (field) {
-            case 'quantity':
-            case 'cost':
-                input.type = 'number';
-                input.step = '0.01';
-                break;
-            case 'unit':
-                input.setAttribute('list', 'unit-list');
-                break;
-            default:
-                input.type = 'text';
-        }
-
-        input.value = originalValue === 'None' || originalValue === 'Unknown' ? '' : originalValue;
-        input.style.width = '90%';
-
-        // Replace cell content with input
+        // Clear cell content
         cell.textContent = '';
-        cell.appendChild(input);
-        input.focus();
 
-        // Handle input blur (when focus is lost)
-        input.addEventListener('blur', async () => {
-            const newValue = input.value.trim();
+        if (field === 'allergens' || field === 'dietary_mentions') {
+            // Create container for toggle buttons
+            const container = document.createElement('div');
+            container.className = 'grid-container';
             
-            if (newValue !== originalValue) {
-                try {
+            // Determine which list to use
+            const items = field === 'allergens' ? allergens : dietaryMentions;
+            const selectedItems = originalValue.split(',').map(item => item.trim());
+            
+            items.forEach(item => {
+                const button = document.createElement('button');
+                button.className = 'toggle-button';
+                button.textContent = item;
+                if (selectedItems.includes(item)) {
+                    button.classList.add('active');
+                }
+                button.addEventListener('click', () => button.classList.toggle('active'));
+                container.appendChild(button);
+            });
+
+            // Add container to cell
+            cell.appendChild(container);
+
+            // Handle saving on blur
+            const handleSave = () => {
+                const activeButtons = container.querySelectorAll('.toggle-button.active');
+                const newValue = Array.from(activeButtons)
+                    .map(button => button.textContent)
+                    .join(', ');
+
+                if (newValue !== originalValue) {
                     const item = ingredientData.find(i => i.id === parseInt(id));
-                    if (!item) throw new Error('Item not found');
+                    if (!item) return;
 
                     const updatedData = { ...item };
+                    updatedData[field] = newValue || '';
 
-                    // Update the specific field
-                    if (field === 'quantity' || field === 'cost') {
-                        updatedData[field] = parseFloat(newValue) || 0;
-                    } else {
-                        updatedData[field] = newValue;
-                    }
-
-                    const response = await fetch(
-                        `/api/ingredients/${id}`,
-                        {
-                            method: "PUT",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify(updatedData)
-                        }
-                    );
-
-                    if (!response.ok) throw new Error('Failed to update');
-
-                    // Refresh data
-                    fetchIngredients();
-                } catch (error) {
-                    console.error('Error updating value:', error);
-                    cell.textContent = originalValue; // Revert on error
-                    return;
+                    fetch(`/api/ingredients/${id}`, {
+                        method: "PUT",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(updatedData)
+                    })
+                    .then(response => {
+                        if (!response.ok) throw new Error('Failed to update');
+                        fetchIngredients();
+                    })
+                    .catch(error => {
+                        console.error('Error updating value:', error);
+                        cell.textContent = originalValue;
+                    });
+                } else {
+                    cell.textContent = originalValue || 'None';
                 }
-            } else {
-                // No change made, restore original display
-                cell.textContent = originalValue;
-            }
-        });
+            };
 
-        // Handle Enter key
-        input.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                input.blur();
+            // Add a save button
+            const saveButton = document.createElement('button');
+            saveButton.textContent = 'Save';
+            saveButton.className = 'primary-button';
+            saveButton.style.marginTop = '5px';
+            saveButton.addEventListener('click', () => {
+                handleSave();
+            });
+            cell.appendChild(saveButton);
+
+            // Handle outside clicks
+            const handleOutsideClick = (event) => {
+                if (!cell.contains(event.target)) {
+                    handleSave();
+                    document.removeEventListener('click', handleOutsideClick);
+                }
+            };
+            setTimeout(() => {
+                document.addEventListener('click', handleOutsideClick);
+            }, 0);
+
+        } else if (field === 'unit') {
+            // Create input with datalist for units
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.setAttribute('list', 'unit-list');
+            input.value = originalValue;
+            input.style.width = '90%';
+            
+            // Handle input blur
+            input.addEventListener('blur', async () => {
+                const newValue = input.value.trim();
+                
+                if (newValue !== originalValue) {
+                    try {
+                        const item = ingredientData.find(i => i.id === parseInt(id));
+                        if (!item) throw new Error('Item not found');
+
+                        const updatedData = { ...item };
+                        updatedData[field] = newValue;
+
+                        const response = await fetch(
+                            `/api/ingredients/${id}`,
+                            {
+                                method: "PUT",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify(updatedData)
+                            }
+                        );
+
+                        if (!response.ok) throw new Error('Failed to update');
+                        fetchIngredients();
+                    } catch (error) {
+                        console.error('Error updating value:', error);
+                        cell.textContent = originalValue;
+                        return;
+                    }
+                } else {
+                    cell.textContent = originalValue;
+                }
+            });
+
+            // Handle Enter key
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    input.blur();
+                }
+            });
+
+            cell.appendChild(input);
+            input.focus();
+        } else {
+            // Default behavior for other fields
+            const input = document.createElement('input');
+            
+            if (field === 'quantity' || field === 'cost') {
+                input.type = 'number';
+                input.step = '0.01';
+            } else {
+                input.type = 'text';
             }
-        });
+
+            input.value = originalValue === 'None' || originalValue === 'Unknown' ? '' : originalValue;
+            input.style.width = '90%';
+            
+            input.addEventListener('blur', async () => {
+                const newValue = input.value.trim();
+                
+                if (newValue !== originalValue) {
+                    try {
+                        const item = ingredientData.find(i => i.id === parseInt(id));
+                        if (!item) throw new Error('Item not found');
+
+                        const updatedData = { ...item };
+
+                        if (field === 'quantity' || field === 'cost') {
+                            updatedData[field] = parseFloat(newValue) || 0;
+                        } else {
+                            updatedData[field] = newValue;
+                        }
+
+                        const response = await fetch(
+                            `/api/ingredients/${id}`,
+                            {
+                                method: "PUT",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify(updatedData)
+                            }
+                        );
+
+                        if (!response.ok) throw new Error('Failed to update');
+                        fetchIngredients();
+                    } catch (error) {
+                        console.error('Error updating value:', error);
+                        cell.textContent = originalValue;
+                        return;
+                    }
+                } else {
+                    cell.textContent = originalValue;
+                }
+            });
+
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    input.blur();
+                }
+            });
+
+            cell.appendChild(input);
+            input.focus();
+        }
     }
 
     function openModal(editIndex = null) {
