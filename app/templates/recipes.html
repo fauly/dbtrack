@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Recipe Book</title>
     <link rel="stylesheet" href="/static/css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 </head>
 <body>
     <div class="container">
@@ -69,38 +70,38 @@
             </div>
 
             <h3>Ingredients</h3>
-            <table id="ingredient-table">
-                <thead>
-                    <tr>
-                        <th>Ingredient</th>
-                        <th>Quantity</th>
-                        <th>Unit</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <!-- Dynamically populated ingredients -->
-                </tbody>
-            </table>
+            <div id="ingredients-section">
+                <table id="ingredient-table">
+                    <thead>
+                        <tr>
+                            <th>Ingredient/Recipe</th>
+                            <th>Quantity</th>
+                            <th>Unit</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Dynamically populated ingredients -->
+                    </tbody>
+                </table>
+                <div class="ingredient-input">
+                    <select id="ingredient-type">
+                        <option value="ingredient">Ingredient</option>
+                        <option value="recipe">Recipe Reference</option>
+                    </select>
+                    <input type="text" class="ingredient-search" placeholder="Search...">
+                    <ul class="ingredient-suggestions suggestions-list"></ul>
+                </div>
+            </div>
 
             <h3>Steps</h3>
-            <div id="step-container">
-                <div class="step-row">
-                    <div class="step-left">
-                        <input type="text" class="step-title" placeholder="Step Title">
-                        <textarea class="step-description" placeholder="Step Description"></textarea>
-                    </div>
-                    <div class="step-right">
-                        <table class="step-ingredients">
-                            <thead>
-                                <tr><th>Ingredient</th><th>Quantity</th><th>Unit</th></tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
-                        <input type="text" class="step-ingredient-search" placeholder="Search ingredient...">
-                        <ul class="ingredient-suggestions"></ul>
-                    </div>
-                    <button class="delete-step">X</button>
+            <div id="steps-container">
+                <div id="steps-tree" class="sortable-tree">
+                    <!-- Steps and sections will be added here -->
+                </div>
+                <div class="steps-actions">
+                    <button id="add-section" class="primary-button">Add Section</button>
+                    <button id="add-step" class="primary-button">Add Step</button>
                 </div>
             </div>
 
@@ -110,6 +111,56 @@
             </div>
         </div>
     </div>
+
+    <!-- Template for sections and steps -->
+    <template id="section-template">
+        <div class="recipe-section" data-type="section">
+            <div class="section-header">
+                <span class="drag-handle">⋮</span>
+                <input type="text" class="section-title" placeholder="Section Title">
+                <button class="toggle-section">▼</button>
+                <button class="delete-section">×</button>
+            </div>
+            <div class="section-content sortable-tree">
+                <!-- Nested steps or sections go here -->
+            </div>
+        </div>
+    </template>
+
+    <template id="step-template">
+        <div class="recipe-step" data-type="step">
+            <div class="step-header">
+                <span class="drag-handle">⋮</span>
+                <input type="text" class="step-title" placeholder="Step Title">
+                <button class="toggle-step">▼</button>
+                <button class="delete-step">×</button>
+            </div>
+            <div class="step-content">
+                <textarea class="step-description" placeholder="Step Description"></textarea>
+                <div class="step-ingredients">
+                    <h4>Step Ingredients</h4>
+                    <table class="step-ingredients-table">
+                        <thead>
+                            <tr>
+                                <th>Ingredient</th>
+                                <th>Quantity</th>
+                                <th>Unit</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                    <div class="step-ingredient-input">
+                        <input type="text" class="step-ingredient-search" placeholder="Search ingredient...">
+                        <input type="number" class="step-ingredient-quantity" step="0.01" placeholder="Quantity">
+                        <input type="text" class="step-ingredient-unit" list="unit-list" placeholder="Unit">
+                        <button class="add-step-ingredient primary-button">Add</button>
+                    </div>
+                    <ul class="ingredient-suggestions suggestions-list"></ul>
+                </div>
+            </div>
+        </div>
+    </template>
 
     <script src="/static/js/recipes.js"></script>
 </body>

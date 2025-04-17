@@ -107,21 +107,21 @@ class Recipe(db.Model):
     __tablename__ = "recipes"
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(255), nullable=False, unique=True)  # Recipe name
-    servings_type = db.Column(db.String(50), nullable=False)  # e.g., "cake", "muffin", "loaf"
-    servings_count = db.Column(db.Integer, nullable=False, default=1)  # Default serving count
-    ingredients = db.Column(db.JSON, nullable=False)  # JSON to store ingredient list or sub-recipe links
-    steps = db.Column(db.JSON, nullable=False)  # JSON to store step-by-step instructions
+    name = db.Column(db.String(255), nullable=False, unique=True)
+    servings_type = db.Column(db.String(50), nullable=False)
+    servings_count = db.Column(db.Integer, nullable=False, default=1)
+    ingredients = db.Column(db.JSON, nullable=False)  # Now includes recipe references
+    steps = db.Column(db.JSON, nullable=False)  # Now includes sections and nested steps
     tags = db.relationship('Tag', secondary='recipe_tags', backref=db.backref('recipes', lazy='dynamic'))
-    notes = db.Column(db.Text, nullable=True)  # Optional notes about the recipe
-    prep_time = db.Column(db.String(50), nullable=True)  # e.g., "15 mins"
-    cook_time = db.Column(db.String(50), nullable=True)  # e.g., "30 mins"
-    total_time = db.Column(db.String(50), nullable=True)  # e.g., "45 mins"
-    created_at = db.Column(db.DateTime, server_default=db.func.now())  # Creation timestamp
-    updated_at = db.Column(db.DateTime, onupdate=db.func.now())  # Update timestamp
+    notes = db.Column(db.Text, nullable=True)
+    prep_time = db.Column(db.String(50), nullable=True)
+    cook_time = db.Column(db.String(50), nullable=True)
+    total_time = db.Column(db.String(50), nullable=True)
+    created_at = db.Column(db.DateTime, server_default=db.func.now())
+    updated_at = db.Column(db.DateTime, onupdate=db.func.now())
 
-    def to_dict(self):
-        return {
+    def to_dict(self, include_referenced_recipes=True):
+        recipe_dict = {
             "id": self.id,
             "name": self.name,
             "servings_type": self.servings_type,
@@ -136,6 +136,17 @@ class Recipe(db.Model):
             "created_at": self.created_at,
             "updated_at": self.updated_at,
         }
+
+        if include_referenced_recipes and self.ingredients:
+            referenced_recipes = []
+            for item in self.ingredients:
+                if item.get("type") == "recipe":
+                    referenced_recipe = Recipe.query.get(item.get("recipe_id"))
+                    if referenced_recipe:
+                        referenced_recipes.append(referenced_recipe.to_dict(include_referenced_recipes=False))
+            recipe_dict["referenced_recipes"] = referenced_recipes
+
+        return recipe_dict
     
 recipe_tags = db.Table(
     'recipe_tags',

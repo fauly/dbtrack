@@ -9,6 +9,16 @@ def get_recipes():
     recipes = Recipe.query.all()
     return jsonify([recipe.to_dict() for recipe in recipes])
 
+# Search for recipes
+@bp.route("/search", methods=["GET"])
+def search_recipes():
+    query = request.args.get("query", "").strip()
+    if not query:
+        return jsonify([])
+
+    recipes = Recipe.query.filter(Recipe.name.ilike(f"%{query}%")).limit(5).all()
+    return jsonify([recipe.to_dict(include_referenced_recipes=False) for recipe in recipes])
+
 # Add a new recipe
 @bp.route("/", methods=["POST"])
 def add_recipe():
@@ -18,7 +28,7 @@ def add_recipe():
     if not all(field in data for field in required_fields):
         return jsonify({"error": "Missing required fields"}), 400
 
-    # Handle tags (convert list into actual tag objects)
+    # Handle tags
     tag_names = data.get("tags", [])
     tags = []
     for tag_name in tag_names:
@@ -32,6 +42,13 @@ def add_recipe():
     existing_recipe = Recipe.query.filter_by(name=data["name"]).first()
     if existing_recipe:
         return jsonify({"error": f"Recipe '{data['name']}' already exists."}), 400
+
+    # Validate referenced recipes exist
+    for ingredient in data["ingredients"]:
+        if ingredient.get("type") == "recipe":
+            referenced_recipe = Recipe.query.get(ingredient.get("recipe_id"))
+            if not referenced_recipe:
+                return jsonify({"error": f"Referenced recipe with ID {ingredient.get('recipe_id')} not found."}), 400
 
     recipe = Recipe(
         name=data["name"],
@@ -60,7 +77,7 @@ def update_recipe(recipe_id):
     if not recipe:
         return jsonify({"error": f"Recipe with ID {recipe_id} not found."}), 404
 
-    # Handle tags (update to match input)
+    # Handle tags
     tag_names = data.get("tags", [])
     tags = []
     for tag_name in tag_names:
@@ -70,12 +87,24 @@ def update_recipe(recipe_id):
             db.session.add(tag)
         tags.append(tag)
 
+    # Validate referenced recipes exist and check for circular references
+    if "ingredients" in data:
+        for ingredient in data["ingredients"]:
+            if ingredient.get("type") == "recipe":
+                if ingredient.get("recipe_id") == recipe_id:
+                    return jsonify({"error": "Recipe cannot reference itself."}), 400
+                referenced_recipe = Recipe.query.get(ingredient.get("recipe_id"))
+                if not referenced_recipe:
+                    return jsonify({"error": f"Referenced recipe with ID {ingredient.get('recipe_id')} not found."}), 400
+
     # Update fields
     recipe.name = data.get("name", recipe.name)
     recipe.servings_type = data.get("servings_type", recipe.servings_type)
     recipe.servings_count = data.get("servings_count", recipe.servings_count)
-    recipe.ingredients = data.get("ingredients", recipe.ingredients)
-    recipe.steps = data.get("steps", recipe.steps)
+    if "ingredients" in data:
+        recipe.ingredients = data["ingredients"]
+    if "steps" in data:
+        recipe.steps = data["steps"]
     recipe.tags = tags
     recipe.notes = data.get("notes", recipe.notes)
     recipe.prep_time = data.get("prep_time", recipe.prep_time)

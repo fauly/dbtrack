@@ -324,3 +324,256 @@ input[type="number"], textarea {
     color: gray;
     background-color: #e0e0e0;
 }
+
+/* Recipe specific styles */
+.step-row {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 20px;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    position: relative;
+}
+
+.step-left {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.step-right {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.step-title {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.step-description {
+    width: 100%;
+    min-height: 100px;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    resize: vertical;
+}
+
+.step-ingredient-input {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr auto;
+    gap: 8px;
+    align-items: center;
+    margin-top: 10px;
+}
+
+.delete-step {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.delete-step:hover {
+    background-color: #c82333;
+}
+
+.suggestions-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    position: absolute;
+    width: calc(100% - 20px);
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1000;
+    display: none;
+}
+
+.suggestion-item {
+    padding: 8px 12px;
+    cursor: pointer;
+}
+
+.suggestion-item:hover,
+.suggestion-item.active {
+    background-color: #e9ecef;
+}
+
+.step-ingredients {
+    margin-bottom: 10px;
+}
+
+.step-ingredients th,
+.step-ingredients td {
+    padding: 8px;
+    text-align: left;
+}
+
+/* Add these to handle the fullscreen modal better */
+.modal.fullscreen .modal-content {
+    width: 90%;
+    max-width: 1200px;
+    height: 90vh;
+    margin: 5vh auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.modal.fullscreen .form-group {
+    width: 100%;
+}
+
+/* Recipe sections and steps */
+.recipe-section, .recipe-step {
+    margin: 10px 0;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background: white;
+}
+
+.section-header, .step-header {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    background: #f8f9fa;
+    border-bottom: 1px solid #ddd;
+    cursor: move;
+}
+
+.section-content {
+    padding: 10px;
+}
+
+.section-content.collapsed,
+.step-content.collapsed {
+    display: none;
+}
+
+.drag-handle {
+    cursor: move;
+    padding: 0 10px;
+    color: #666;
+    font-size: 20px;
+}
+
+.section-title, .step-title {
+    flex: 1;
+    margin: 0 10px;
+    padding: 5px;
+    border: 1px solid transparent;
+    background: transparent;
+}
+
+.section-title:focus, .step-title:focus {
+    border-color: #007bff;
+    background: white;
+}
+
+.toggle-section, .toggle-step, .delete-section, .delete-step {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 5px;
+    font-size: 16px;
+}
+
+.delete-section, .delete-step {
+    color: #dc3545;
+}
+
+.toggle-section, .toggle-step {
+    color: #666;
+}
+
+.step-content {
+    padding: 10px;
+}
+
+.step-description {
+    width: 100%;
+    min-height: 80px;
+    margin: 10px 0;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    resize: vertical;
+}
+
+/* Nested sections and steps */
+.sortable-tree .recipe-section {
+    margin-left: 20px;
+}
+
+.recipe-section .recipe-step {
+    margin-left: 20px;
+}
+
+/* Drag and drop */
+.sortable-ghost {
+    opacity: 0.4;
+}
+
+.sortable-chosen {
+    background-color: #f8f9fa;
+}
+
+.sortable-drag {
+    opacity: 0.8;
+}
+
+/* Recipe reference styles */
+.recipe-reference {
+    background-color: #e3f2fd;
+    border-radius: 4px;
+    padding: 10px;
+    margin: 10px 0;
+}
+
+.recipe-reference-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.recipe-reference-ingredients {
+    padding-left: 20px;
+    border-left: 2px solid #90caf9;
+}
+
+.ingredient-input {
+    display: grid;
+    grid-template-columns: auto 2fr 1fr 1fr auto;
+    gap: 8px;
+    align-items: center;
+    margin-top: 10px;
+    padding: 10px;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+}
+
+#ingredient-type {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
