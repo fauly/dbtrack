@@ -22,6 +22,12 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         try {
+            console.log('Sending conversion request:', {
+                from_unit: fromUnit,
+                to_unit: toUnit,
+                amount: amount
+            });
+
             const response = await fetch('/api/quantity-conversions/convert', {
                 method: 'POST',
                 headers: {
@@ -35,13 +41,17 @@ document.addEventListener('DOMContentLoaded', function() {
             });
 
             const data = await response.json();
+            console.log('Conversion response:', data);
+            
             if (response.ok) {
-                conversionResult.textContent = `${amount} ${fromUnit} = ${data.result} ${toUnit}`;
+                const result = Number(data.result).toFixed(3);
+                conversionResult.textContent = `${amount} ${fromUnit} = ${result} ${toUnit}`;
                 conversionResult.classList.remove('error');
             } else {
                 showError(data.error || 'Conversion failed');
             }
         } catch (error) {
+            console.error('Conversion error:', error);
             showError('An error occurred during conversion');
         }
     });
@@ -49,15 +59,16 @@ document.addEventListener('DOMContentLoaded', function() {
     async function loadConversions() {
         try {
             const response = await fetch('/api/quantity-conversions/');
-            const data = await response.json();
+            const conversions = await response.json();
             
             if (response.ok) {
-                updateConversionTable(data.conversions);
-                updateUnitSelects(data.conversions);
+                updateConversionTable(conversions);
+                updateUnitSelects(conversions);
             } else {
                 showError('Failed to load conversions');
             }
         } catch (error) {
+            console.error('Error loading conversions:', error);
             showError('An error occurred while loading conversions');
         }
     }

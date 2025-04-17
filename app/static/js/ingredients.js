@@ -48,13 +48,13 @@ document.addEventListener("DOMContentLoaded", () => {
     async function populateUnits() {
         try {
             const response = await fetch("/api/quantity-conversions/");
-            const units = await response.json();
+            const conversions = await response.json();
             const unitList = document.getElementById("unit-list");
 
             unitList.innerHTML = ""; 
-            units.forEach(unit => {
+            conversions.forEach(conversion => {
                 const option = document.createElement("option");
-                option.value = unit.unit_name;
+                option.value = conversion.unit_name;
                 unitList.appendChild(option);
             });
         } catch (error) {

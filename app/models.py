@@ -42,20 +42,29 @@ class QuantityConversion(db.Model):
     @staticmethod
     def convert_units(amount, from_unit, to_unit):
         """Convert between compatible units"""
+        # Handle same unit conversion
+        if from_unit == to_unit:
+            return float(amount)
+
+        # Find conversion records
         from_conv = QuantityConversion.query.filter_by(unit_name=from_unit).first()
         to_conv = QuantityConversion.query.filter_by(unit_name=to_unit).first()
         
         if not from_conv or not to_conv:
             return None
             
+        # Check unit type compatibility
         if from_conv.unit_type != to_conv.unit_type:
             return None
             
-        # Convert to reference unit first
-        reference_amount = amount * from_conv.reference_unit_amount
+        # Both units convert to the same reference unit
+        if from_conv.reference_unit_name == to_conv.reference_unit_name:
+            # Convert to reference unit first
+            reference_amount = float(amount) * float(from_conv.reference_unit_amount)
+            # Then convert to target unit
+            return reference_amount / float(to_conv.reference_unit_amount)
         
-        # Then convert to target unit
-        return reference_amount / to_conv.reference_unit_amount
+        return None  # Incompatible units
 
 class Ingredients(db.Model):
     __tablename__ = "ingredients"
