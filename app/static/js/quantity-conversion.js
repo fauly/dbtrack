@@ -79,8 +79,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 <td class="editable" data-field="reference_unit_amount" data-id="${item.id}">${item.reference_unit_amount}</td>
                 <td class="editable" data-field="reference_unit_name" data-id="${item.id}">${item.reference_unit_name}</td>
                 <td>
-                    <button data-id="${item.id}" class="edit-button">Edit</button>
-                    <button data-id="${item.id}" class="delete-button">Delete</button>
+                    <button data-id="${item.id}" class="edit-button">✏️</button>
+                    <button data-id="${item.id}" class="delete-button">🗑️</button>
                 </td>
             `;
             tableBody.appendChild(row);
