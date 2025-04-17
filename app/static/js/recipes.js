@@ -170,14 +170,6 @@ function initializeRecipes() {
                         } else {
                             const step = stepTemplate.content.cloneNode(true).firstElementChild;
                             step.querySelector('.step-title').value = item.title;
-                            section.querySelector('.section-title').value = item.title;
-                            const sectionContent = section.querySelector('.section-content');
-                            initializeSortable(sectionContent);
-                            loadItems(item.items, sectionContent);
-                            container.appendChild(section);
-                        } else {
-                            const step = stepTemplate.content.cloneNode(true).firstElementChild;
-                            step.querySelector('.step-title').value = item.title;
                             step.querySelector('.step-description').value = item.description;
                             setupStepIngredients(step);
                             
