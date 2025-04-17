@@ -5,6 +5,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const convertButton = document.getElementById('convert-button');
     const conversionResult = document.getElementById('conversion-result');
     const conversionTable = document.getElementById('conversion-table');
+    const modal = document.getElementById('conversion-modal');
+    const addEntryButton = document.getElementById('add-entry-button');
+    const closeButton = document.querySelector('.close-button');
+    const saveButton = document.getElementById('save-button');
+    const cancelButton = document.getElementById('cancel-button');
+    const unitInput = document.getElementById('unit');
+    const valueInput = document.getElementById('value');
+    const referenceUnitInput = document.getElementById('reference-unit');
 
     // Load conversions on page load
     loadConversions();
@@ -53,6 +61,65 @@ document.addEventListener('DOMContentLoaded', function() {
         } catch (error) {
             console.error('Conversion error:', error);
             showError('An error occurred during conversion');
+        }
+    });
+
+    addEntryButton.addEventListener('click', () => {
+        modal.style.display = 'block';
+        unitInput.value = '';
+        valueInput.value = '';
+        referenceUnitInput.value = '';
+    });
+
+    closeButton.addEventListener('click', () => {
+        modal.style.display = 'none';
+    });
+
+    cancelButton.addEventListener('click', () => {
+        modal.style.display = 'none';
+    });
+
+    window.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.style.display = 'none';
+        }
+    });
+
+    saveButton.addEventListener('click', async () => {
+        const unit = unitInput.value.trim();
+        const value = valueInput.value;
+        const referenceUnit = referenceUnitInput.value.trim();
+
+        if (!unit || !value || !referenceUnit) {
+            alert('Please fill in all fields');
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/quantity-conversions/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    unit_name: unit,
+                    reference_unit_name: referenceUnit,
+                    reference_unit_amount: parseFloat(value),
+                    unit_type: getReferenceType(referenceUnit)
+                })
+            });
+
+            const data = await response.json();
+            
+            if (response.ok) {
+                modal.style.display = 'none';
+                loadConversions();
+            } else {
+                alert(data.error || 'Failed to save conversion');
+            }
+        } catch (error) {
+            console.error('Error saving conversion:', error);
+            alert('An error occurred while saving the conversion');
         }
     });
 
@@ -111,6 +178,20 @@ document.addEventListener('DOMContentLoaded', function() {
     function showError(message) {
         conversionResult.textContent = message;
         conversionResult.classList.add('error');
+    }
+
+    // Helper function to determine unit type based on reference unit
+    function getReferenceType(referenceUnit) {
+        const massUnits = ['g', 'kg', 'oz', 'lb'];
+        const volumeUnits = ['ml', 'L', 'fl oz', 'gal', 'quart', 'pint'];
+        const timeUnits = ['mins', 'hours'];
+
+        referenceUnit = referenceUnit.toLowerCase();
+        
+        if (massUnits.includes(referenceUnit)) return 'mass';
+        if (volumeUnits.includes(referenceUnit)) return 'volume';
+        if (timeUnits.includes(referenceUnit)) return 'time';
+        return 'count';
     }
 });
 
