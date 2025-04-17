@@ -1,15 +1,62 @@
+// Wait for both DOM and script dependencies to be ready
+function waitForElements(selectors, callback, maxAttempts = 50) {
+    const check = (attempts) => {
+        const elements = selectors.map(selector => document.querySelector(selector));
+        if (elements.every(el => el)) {
+            callback(elements);
+            return;
+        }
+        if (attempts <= 0) {
+            console.error('Could not find elements:', 
+                selectors.reduce((acc, sel, i) => {
+                    acc[sel] = !!elements[i];
+                    return acc;
+                }, {})
+            );
+            return;
+        }
+        setTimeout(() => check(attempts - 1), 100);
+    };
+    check(maxAttempts);
+}
+
 document.addEventListener("DOMContentLoaded", () => {
-    // Wait for Sortable library to load
-    if (typeof Sortable === 'undefined') {
-        const sortableScript = document.createElement('script');
-        sortableScript.src = "https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js";
-        document.head.appendChild(sortableScript);
+    const requiredElements = [
+        '#recipe-modal',
+        '#steps-tree',
+        '#section-template',
+        '#step-template'
+    ];
 
-        sortableScript.onload = initializeRecipes;
-        return;
-    }
+    // First ensure Sortable is loaded
+    const ensureSortable = (callback) => {
+        if (typeof Sortable !== 'undefined') {
+            callback();
+            return;
+        }
+        
+        console.log('Waiting for Sortable to load...');
+        const checkSortable = (attempts = 50) => {
+            if (typeof Sortable !== 'undefined') {
+                callback();
+                return;
+            }
+            if (attempts <= 0) {
+                console.error('Sortable failed to load');
+                return;
+            }
+            setTimeout(() => checkSortable(attempts - 1), 100);
+        };
+        checkSortable();
+    };
 
-    initializeRecipes();
+    // Then initialize the application once everything is ready
+    ensureSortable(() => {
+        waitForElements(requiredElements, ([modal, stepsTree, sectionTemplate, stepTemplate]) => {
+            console.log('All required elements found, initializing application...');
+            initializeRecipes();
+        });
+    });
 });
 
 function initializeRecipes() {
