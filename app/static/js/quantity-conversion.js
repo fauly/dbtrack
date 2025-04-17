@@ -66,18 +66,18 @@ document.addEventListener("DOMContentLoaded", () => {
             )
             .sort((a, b) => {
                 const { column, order } = sortOrder;
-                if (!column) return 0; // No sorting applied
+                if (!column) return 0;
                 if (a[column] < b[column]) return order === "asc" ? -1 : 1;
                 if (a[column] > b[column]) return order === "asc" ? 1 : -1;
                 return 0;
             });
-    
+
         filteredData.forEach(item => {
             const row = document.createElement("tr");
             row.innerHTML = `
-                <td>${item.unit_name}</td>
-                <td>${item.reference_unit_amount}</td>
-                <td>${item.reference_unit_name}</td>
+                <td class="editable" data-field="unit_name" data-id="${item.id}">${item.unit_name}</td>
+                <td class="editable" data-field="reference_unit_amount" data-id="${item.id}">${item.reference_unit_amount}</td>
+                <td class="editable" data-field="reference_unit_name" data-id="${item.id}">${item.reference_unit_name}</td>
                 <td>
                     <button data-id="${item.id}" class="edit-button">Edit</button>
                     <button data-id="${item.id}" class="delete-button">Delete</button>
@@ -85,8 +85,82 @@ document.addEventListener("DOMContentLoaded", () => {
             `;
             tableBody.appendChild(row);
         });
+
+        // Add double-click handlers to editable cells
+        document.querySelectorAll('.editable').forEach(cell => {
+            cell.addEventListener('dblclick', handleCellDblClick);
+        });
     }
-    
+
+    function handleCellDblClick(e) {
+        const cell = e.target;
+        const originalValue = cell.textContent;
+        const field = cell.dataset.field;
+        const id = cell.dataset.id;
+
+        // Create input element
+        const input = document.createElement('input');
+        input.type = field === 'reference_unit_amount' ? 'number' : 'text';
+        input.value = originalValue;
+        input.style.width = '90%';
+
+        // Replace cell content with input
+        cell.textContent = '';
+        cell.appendChild(input);
+        input.focus();
+
+        // Handle input blur (when focus is lost)
+        input.addEventListener('blur', async () => {
+            const newValue = input.value.trim();
+            
+            if (newValue !== originalValue) {
+                try {
+                    const item = conversionData.find(i => i.id === parseInt(id));
+                    if (!item) throw new Error('Item not found');
+
+                    const updatedData = {
+                        unit_name: item.unit_name,
+                        reference_unit_name: item.reference_unit_name,
+                        reference_unit_amount: item.reference_unit_amount
+                    };
+
+                    // Update the specific field
+                    if (field === 'reference_unit_amount') {
+                        updatedData[field] = parseFloat(newValue);
+                    } else {
+                        updatedData[field] = newValue;
+                    }
+
+                    const response = await fetch(
+                        `/api/quantity-conversions/${item.unit_name}`,
+                        {
+                            method: "PUT",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify(updatedData)
+                        }
+                    );
+
+                    if (!response.ok) throw new Error('Failed to update');
+
+                    // Refresh data
+                    fetchConversions();
+                } catch (error) {
+                    console.error('Error updating value:', error);
+                    cell.textContent = originalValue; // Revert on error
+                    return;
+                }
+            } else {
+                cell.textContent = originalValue; // No change made
+            }
+        });
+
+        // Handle Enter key
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                input.blur();
+            }
+        });
+    }
 
     function openModal(editIndex = null) {
         editingIndex = editIndex;

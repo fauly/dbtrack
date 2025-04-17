@@ -81,20 +81,106 @@ document.addEventListener("DOMContentLoaded", () => {
         filteredData.forEach((item, index) => {
             const row = document.createElement("tr");
             row.innerHTML = `
-                <td>${item.name}</td>
-                <td>${item.allergens || "None"}</td>
-                <td>${item.dietary_mentions || "None"}</td>
-                <td>${item.source || "Unknown"}</td>
-                <td>${item.lead_time || "Unknown"}</td>
-                <td>${item.quantity || 0}</td>
-                <td>${item.unit || ""}</td>
-                <td>${item.cost || 0}</td>
+                <td class="editable" data-field="name" data-id="${item.id}">${item.name}</td>
+                <td class="editable" data-field="allergens" data-id="${item.id}">${item.allergens || "None"}</td>
+                <td class="editable" data-field="dietary_mentions" data-id="${item.id}">${item.dietary_mentions || "None"}</td>
+                <td class="editable" data-field="source" data-id="${item.id}">${item.source || "Unknown"}</td>
+                <td class="editable" data-field="lead_time" data-id="${item.id}">${item.lead_time || "Unknown"}</td>
+                <td class="editable" data-field="quantity" data-id="${item.id}">${item.quantity || 0}</td>
+                <td class="editable" data-field="unit" data-id="${item.id}">${item.unit || ""}</td>
+                <td class="editable" data-field="cost" data-id="${item.id}">${item.cost || 0}</td>
                 <td>
                     <button data-index="${index}" class="edit-button">Edit</button>
                     <button data-index="${index}" class="delete-button">Delete</button>
                 </td>
             `;
             tableBody.appendChild(row);
+        });
+
+        // Add double-click handlers to editable cells
+        document.querySelectorAll('.editable').forEach(cell => {
+            cell.addEventListener('dblclick', handleCellDblClick);
+        });
+    }
+
+    function handleCellDblClick(e) {
+        const cell = e.target;
+        const originalValue = cell.textContent;
+        const field = cell.dataset.field;
+        const id = cell.dataset.id;
+
+        // Create input element
+        const input = document.createElement('input');
+        
+        // Set input type based on field
+        switch (field) {
+            case 'quantity':
+            case 'cost':
+                input.type = 'number';
+                input.step = '0.01';
+                break;
+            case 'unit':
+                input.setAttribute('list', 'unit-list');
+                break;
+            default:
+                input.type = 'text';
+        }
+
+        input.value = originalValue === 'None' || originalValue === 'Unknown' ? '' : originalValue;
+        input.style.width = '90%';
+
+        // Replace cell content with input
+        cell.textContent = '';
+        cell.appendChild(input);
+        input.focus();
+
+        // Handle input blur (when focus is lost)
+        input.addEventListener('blur', async () => {
+            const newValue = input.value.trim();
+            
+            if (newValue !== originalValue) {
+                try {
+                    const item = ingredientData.find(i => i.id === parseInt(id));
+                    if (!item) throw new Error('Item not found');
+
+                    const updatedData = { ...item };
+
+                    // Update the specific field
+                    if (field === 'quantity' || field === 'cost') {
+                        updatedData[field] = parseFloat(newValue) || 0;
+                    } else {
+                        updatedData[field] = newValue;
+                    }
+
+                    const response = await fetch(
+                        `/api/ingredients/${id}`,
+                        {
+                            method: "PUT",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify(updatedData)
+                        }
+                    );
+
+                    if (!response.ok) throw new Error('Failed to update');
+
+                    // Refresh data
+                    fetchIngredients();
+                } catch (error) {
+                    console.error('Error updating value:', error);
+                    cell.textContent = originalValue; // Revert on error
+                    return;
+                }
+            } else {
+                // No change made, restore original display
+                cell.textContent = originalValue;
+            }
+        });
+
+        // Handle Enter key
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                input.blur();
+            }
         });
     }
 

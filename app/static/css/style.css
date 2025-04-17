@@ -102,6 +102,28 @@ input[type="text"] {
     border-radius: 4px;
 }
 
+/* Editable table cells */
+.editable {
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.editable:hover {
+    background-color: #f0f0f0;
+}
+
+.editable:active {
+    background-color: #e8e8e8;
+}
+
+/* Style for the cell when being edited */
+.editable input {
+    padding: 4px;
+    border: 2px solid #007bff;
+    border-radius: 4px;
+    font-size: 1em;
+}
+
 /* Checkbox Section */
 .checkbox-section h3 {
     margin-top: 20px;
