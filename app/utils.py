@@ -21,23 +21,25 @@ def parse_query_filters(Model, query_str):
     # Process filter tokens
     for i, part in enumerate(parts):
         if i == 0:
-            # Handle free text before any tokens
-            if part.strip():
-                search_term = part.strip()
-                column_conditions = []
-                for column in Model.__table__.columns:
-                    if column.type.python_type == str:
-                        column_conditions.append(column.ilike(f'%{search_term}%'))
-                    elif column.type.python_type in (int, float):
-                        try:
-                            numeric_value = float(search_term)
-                            column_conditions.append(column == numeric_value)
-                            column_conditions.append(cast(column, String).ilike(f'%{search_term}%'))
-                        except ValueError:
-                            continue
-                if column_conditions:
-                    filters.append(or_(*column_conditions))
+            # Enhanced free text: support word-by-word search across all columns
+            terms = part.strip().split()
+            if terms:
+                for word in terms:
+                    word_conditions = []
+                    for column in Model.__table__.columns:
+                        if column.type.python_type == str:
+                            word_conditions.append(column.ilike(f'%{word}%'))
+                        elif column.type.python_type in (int, float):
+                            try:
+                                numeric_value = float(word)
+                                word_conditions.append(column == numeric_value)
+                                word_conditions.append(cast(column, String).ilike(f'%{word}%'))
+                            except ValueError:
+                                continue
+                    if word_conditions:
+                        filters.append(or_(*word_conditions))
             continue
+
             
         # Handle filter tokens
         token_part = part.strip()
@@ -87,24 +89,22 @@ def parse_query_filters(Model, query_str):
             except (ValueError, TypeError):
                 typed_value = value
             
-            # For string columns, use case-sensitive comparison by default
-            # Only use case-insensitive for 'contains' operator
-            if column.type.python_type == str and op != 'contains':
-                if op == '=': filters.append(column == typed_value)
-                elif op == '!=': filters.append(column != typed_value)
-                elif op == '>': filters.append(column > typed_value)
-                elif op == '>=': filters.append(column >= typed_value)
-                elif op == '<': filters.append(column < typed_value)
-                elif op == '<=': filters.append(column <= typed_value)
+            op_map = {
+            'equal': lambda col, val: col == val,
+            'not_equal': lambda col, val: col != val,
+            'greater_than': lambda col, val: col > val,
+            'greater_than_or_equal': lambda col, val: col >= val,
+            'less_than': lambda col, val: col < val,
+            'less_than_or_equal': lambda col, val: col <= val,
+            'contains': lambda col, val: col.ilike(f'%{val}%') if col.type.python_type == str else None
+            }
+
+            if op in op_map:
+                clause = op_map[op](column, typed_value)
+                if clause is not None:
+                    filters.append(clause)
             else:
-                # For non-string columns or 'contains' operator
-                if op == '=': filters.append(column == typed_value)
-                elif op == '!=': filters.append(column != typed_value)
-                elif op == '>': filters.append(column > typed_value)
-                elif op == '>=': filters.append(column >= typed_value)
-                elif op == '<': filters.append(column < typed_value)
-                elif op == '<=': filters.append(column <= typed_value)
-                elif op == 'contains': filters.append(column.ilike(f'%{value}%'))
+                print(f"Unknown operator: {op}")
             
         elif filter_type == 'between':
             col_name, min_val, max_val = components[1:]
@@ -143,4 +143,6 @@ def parse_query_filters(Model, query_str):
     
     # Apply AND between all filters
     final_filter = and_(*filters) if filters else None
-    return [final_filter] if final_filter else [], order_by
+    if final_filter is not None:
+        return [final_filter], order_by
+    return [], order_by
