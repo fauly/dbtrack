@@ -1,49 +1,18 @@
+# app\__init__.py
+
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate
-import os
+from app.db import db
+from app.routes import register_blueprints
 
-# Initialize extensions
-db = SQLAlchemy()
-migrate = Migrate()
 
 def create_app():
-    app = Flask(__name__)
+    app = Flask(__name__, instance_relative_config=False)
+    app.config.from_object('app.config.Config')
 
-    BASE_DIR = os.path.abspath(os.path.dirname(__file__))  # Directory of this script
-    DATABASE_PATH = os.path.join(BASE_DIR, 'database', 'mobile_cafe.db')
-    app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{DATABASE_PATH}"
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
-    # Ensure the database directory exists
-    DATABASE_DIR = os.path.join(BASE_DIR, 'database')
-    if not os.path.exists(DATABASE_DIR):
-        os.makedirs(DATABASE_DIR)
-
-
-    # Initialize extensions
     db.init_app(app)
-    migrate.init_app(app, db)
+    register_blueprints(app)
 
-    # Register blueprints
-    from app.routes.pages import bp as pages_bp
-    app.register_blueprint(pages_bp)
-
-    from app.routes.error_handlers import errors as errors_bp
-    app.register_blueprint(errors_bp)
-
-
-    from app.routes.daily_report import bp as daily_report_bp
-    app.register_blueprint(daily_report_bp, url_prefix="/api")
-
-
-    from app.routes.quantity_conversions import bp as conversions_bp
-    app.register_blueprint(conversions_bp)
-
-    from app.routes.ingredients import bp as ingredients_bp
-    app.register_blueprint(ingredients_bp)
-
-    from app.routes.recipes import bp as recipes_bp
-    app.register_blueprint(recipes_bp)
+    print(f" ✓ App initialized with DB: {app.config['SQLALCHEMY_DATABASE_URI']}")
 
     return app

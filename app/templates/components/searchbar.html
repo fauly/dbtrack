@@ -1,0 +1,29 @@
+{% macro searchbar(endpoint_url, fields, target_table_id, columns, id='search', placeholder='Type to search…') %}
+<div
+  id="{{id}}-wrapper"
+  class="position-relative mb-4"
+  data-endpoint="{{ endpoint_url }}"
+  data-target="#{{ target_table_id }}"
+  data-columns='{{ columns|tojson|safe }}'
+  data-fields='{{ fields|tojson|safe }}'
+>
+  <div
+    id="{{id}}-input"
+    class="form-control"
+    contenteditable="true"
+    spellcheck="false"
+    data-placeholder="{{ placeholder }}"
+  ></div>
+  <ul
+    id="{{id}}-suggestions"
+    class="list-group position-absolute shadow-sm border"
+    style="z-index:1000; display:none; top:100%; left:0; width:100%; background:white;"
+  ></ul>
+</div>
+
+<link rel="stylesheet" href="/static/css/searchbar.css">
+<script type="module">
+  import { setupSearchbar } from '/static/js/searchbar.js';
+  setupSearchbar('{{id}}');
+</script>
+{% endmacro %}

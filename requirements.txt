@@ -1,11 +1,4 @@
-Flask==3.0.0               # Core Flask framework
-Flask-SQLAlchemy==3.0.4    # ORM for database management
-SQLAlchemy==2.0.0          # Core SQLAlchemy library
-Flask-WTF==1.1.1           # Optional: Form handling
-WTForms==3.0.1             # Optional: Form validation
-itsdangerous==2.1.2        # Used internally by Flask
-click==8.1.3               # CLI tool used by Flask
-Jinja2==3.1.2              # Template engine for Flask
-MarkupSafe==2.1.3          # Safeguard for HTML templating
-Flask-Migrate==4.0.5       # Database migrations
-# Werkzeug==2.2.3            # Flask dependency for WSGI
+# requirements.txt
+
+Flask>=2.2.5
+Flask-SQLAlchemy>=3.0.3

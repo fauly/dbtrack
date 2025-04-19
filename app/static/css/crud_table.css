@@ -1,0 +1,166 @@
+/* Modern CRUD table styling */
+.table {
+  --bs-table-border-color: #edf2f7;
+  border-collapse: separate;
+  border-spacing: 0;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 2rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  background: white;
+}
+
+.table thead {
+  background: #f8fafc;
+}
+
+.table th {
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  padding: 1rem;
+  border-bottom: 2px solid #edf2f7;
+  color: #4a5568;
+}
+
+.table td {
+  padding: 0.5rem;
+  border-bottom: 1px solid #edf2f7;
+  transition: all 0.2s ease;
+}
+
+.table tbody tr {
+  transition: all 0.2s ease;
+}
+
+.table tbody tr:hover {
+  background-color: #f7fafc;
+}
+
+/* Input styling */
+.table .form-control {
+  border: none;
+  background: transparent;
+  padding: 0.5rem;
+  transition: all 0.2s ease;
+  border-radius: 4px;
+}
+
+.table .form-control:hover {
+  background: #edf2f7;
+}
+
+.table .form-control:focus {
+  background: white;
+  box-shadow: 0 0 0 2px #63b3ed;
+}
+
+/* Action buttons */
+.table .btn {
+  transition: all 0.2s ease;
+  border-radius: 6px;
+  padding: 0.4rem 0.8rem;
+}
+
+.table .btn-danger {
+  background: #fff;
+  color: #e53e3e;
+  border: 1px solid #e53e3e;
+  opacity: 0.7;
+}
+
+.table .btn-danger:hover {
+  background: #e53e3e;
+  color: white;
+  opacity: 1;
+}
+
+/* Add row button */
+.btn-outline-primary {
+  transition: all 0.2s ease;
+  border-radius: 6px;
+  padding: 0.5rem 1rem;
+  font-weight: 500;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.btn-outline-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* Toast styling */
+.toast {
+  background: #48bb78;
+  color: white;
+  border-radius: 8px;
+  border: none;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.toast-body {
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.toast-body::before {
+  content: '✓';
+  font-weight: bold;
+}
+
+/* Animations */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+}
+
+@keyframes highlight {
+  0% {
+    background-color: #ebf8ff;
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+/* Animation classes */
+.table tbody tr {
+  animation: slideIn 0.3s ease-out;
+}
+
+.table tbody tr.deleting {
+  animation: fadeOut 0.3s ease-out forwards;
+}
+
+.table tbody tr.saving {
+  animation: highlight 1s ease-out;
+}
+
+/* Loading state */
+.table tbody tr.loading td {
+  opacity: 0.6;
+}
+
+.table tbody tr.loading .form-control {
+  background: #edf2f7;
+}

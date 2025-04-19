@@ -1,0 +1,51 @@
+/* app/static/css/global.css */
+
+/* Typography Tweaks */
+body {
+    font-family: "Segoe UI", Roboto, sans-serif;
+    background-color: #fdfdfd;
+    color: #222;
+  }
+  
+.form-check {
+  display: inline-flex;
+  padding-right: 5px;
+}
+
+.form-check .form-check-input{
+  margin-left:0;
+  margin-right: 3px; 
+}
+
+table.table td input {
+  border: none;
+  background: transparent;
+}
+table.table td input:focus {
+  border: 1px solid #007bff;
+  background: white;
+  outline: none;
+}
+
+/* zebra stripes for clarity */
+table.table tbody tr:nth-child(odd) {
+  background: #f9f9f9;
+}
+
+/* tighten up filter form */
+#quantities-search-form {
+  max-width: 600px;
+  margin-bottom: 1.5rem;
+}
+.filter-row .btn-outline-danger {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.9rem;
+}
+
+/* toast positioning */
+.toast-container {
+  z-index: 1055;  /* above modals/nav */
+}
+
+
+  

@@ -1,0 +1,264 @@
+<!-- app\templates\daily\index.html -->
+
+{% extends 'base.html' %}
+{% block content %}
+
+<h1 class="mb-3">Daily Log</h1>
+
+<!-- Date Picker + Nav -->
+<form method="get" class="mb-3 d-flex align-items-end gap-3">
+  <div>
+    <label for="date">Select Date:</label>
+    <input
+      type="date"
+      id="date"
+      name="date"
+      value="{{ selected_date.strftime('%Y-%m-%d') }}"
+      class="form-control"
+      onchange="gotoDate(this.value)"
+    >
+  </div>
+  <div class="ms-auto">
+    <button type="button" class="btn btn-outline-secondary" onclick="navigate('{{ prev_date }}')">← Previous</button>
+    <button type="button" class="btn btn-outline-secondary" onclick="navigate('{{ next_date }}')">Next →</button>
+  </div>
+</form>
+
+<!-- Checklist -->
+<h5>Checklist</h5>
+{% set checklist_items = ['Opening Checklist', 'Midday Checklist', 'EOD Checklist'] %}
+{% set checklist = report.data['checklist'] if report.data and 'checklist' in report.data else [] %}
+{% for item in checklist_items %}
+  {% set match = checklist|selectattr("item", "equalto", item)|first %}
+  <div class="form-check mb-2">
+    <input
+      class="form-check-input"
+      type="checkbox"
+      name="checklist:{{ item }}"
+      {% if match and match.done %}checked{% endif %}
+    />
+    <label class="form-check-label">{{ item }}</label>
+  </div>
+{% endfor %}
+
+<!-- General Notes -->
+<div class="mb-3">
+  <label for="notes">General Notes</label>
+  <textarea id="notes" class="form-control">{{ report.notes }}</textarea>
+</div>
+
+<div class="mb-3">
+  <label for="preset">Apply Preset:</label>
+  <select id="preset" class="form-select w-auto d-inline-block" onchange="applyPreset(this.value)">
+    <option value="">Select a preset</option>
+    <option value="van">Van</option>
+    <option value="kitchen">Kitchen</option>
+  </select>
+</div>
+
+
+<!-- Dynamic Table -->
+<h5>Table</h5>
+<div id="temp-log">
+  <table class="table table-bordered">
+    <thead>
+      <tr>
+        <th>Time</th>
+        {% for col in report.data['temperature_log']['columns'] %}
+          <th>
+            <div class="d-flex align-items-center">
+              <input type="text" name="temp_column" value="{{ col }}" class="form-control me-2" />
+              <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteColumn(this)">🗑</button>
+            </div>
+          </th>
+        {% endfor %}
+        <th id="add-col-btn-cell">
+          <button type="button" class="btn btn-sm btn-secondary" onclick="addTempColumn()">+ Col</button>
+        </th>        
+      </tr>
+    </thead>
+    <tbody id="temp-log-body">
+      {% for row in report.data['temperature_log']['rows'] %}
+        <tr>
+          <td><input type="text" name="temp_row_time" value="{{ row.time }}" class="form-control" /></td>
+          {% for val in row['values'] %}
+            {% set col_loop = loop %}
+            <td>
+              <input
+                type="number"
+                step="0.1"
+                name="temp_cell_{{ loop.index0 }}_{{ col_loop.index0 }}"
+                class="form-control"
+                data-row="{{ loop.index0 }}"
+                data-col="{{ col_loop.index0 }}"
+                value="{{ val }}"
+              />
+            </td>
+          {% endfor %}
+          <td><button type="button" class="btn btn-sm btn-danger" onclick="deleteRow(this)">−</button></td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <button type="button" class="btn btn-outline-primary" onclick="addTempRow()">+ Add Row</button>
+</div>
+
+<hr>
+<h2>History</h2>
+<ul>
+  {% for s in summaries %}
+    <li>{{ s }}</li>
+  {% endfor %}
+</ul>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+/** Navigation helpers **/
+function navigate(date) {
+  window.location = `?date=${date}`;
+}
+function gotoDate(date) {
+  navigate(date);
+}
+
+/** Autosave logic **/
+let saveTimeout;
+const presets = JSON.parse('{{ presets_json|tojson|safe }}');
+
+function applyPreset(key) {
+  if (!presets[key]) return;
+  const preset = presets[key];
+
+  // Clear current table
+  document.querySelector('#temp-log thead tr').innerHTML = `<th>Time</th><th id="add-col-btn-cell"><button type="button" class="btn btn-sm btn-secondary" onclick="addTempColumn()">+ Col</button></th>`;
+  document.querySelector('#temp-log tbody').innerHTML = '';
+
+  // Insert columns
+  const addBtnCell = document.querySelector('#add-col-btn-cell');
+  preset.columns.forEach(col => {
+    const th = document.createElement('th');
+    th.innerHTML = `
+      <div class="d-flex align-items-center">
+        <input type="text" name="temp_column" value="${col}" class="form-control me-2" />
+        <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteColumn(this)">🗑</button>
+      </div>`;
+    addBtnCell.before(th);
+  });
+
+  // Insert rows
+  preset.rows.forEach((row, i) => {
+    const tr = document.createElement('tr');
+    let html = `<td><input type="text" name="temp_row_time" value="${row.time}" class="form-control" /></td>`;
+    row.values.forEach((val, j) => {
+      html += `<td><input type="number" step="0.1" name="temp_cell_${i}_${j}" value="${val || ''}" class="form-control" /></td>`;
+    });
+    html += `<td><button type="button" class="btn btn-sm btn-danger" onclick="deleteRow(this)">−</button></td>`;
+    tr.innerHTML = html;
+    document.querySelector('#temp-log tbody').appendChild(tr);
+  });
+
+  reindex();
+}
+
+function autosave() {
+  clearTimeout(saveTimeout);
+  saveTimeout = setTimeout(() => {
+    const date = document.querySelector('#date').value;
+    const notes = document.querySelector('#notes').value;
+
+    // Checklist
+    const checklist = Array.from(document.querySelectorAll('input[type="checkbox"][name^="checklist:"]'))
+      .map(cb => ({ item: cb.name.split(':')[1], done: cb.checked }));
+
+    // Table
+    const columns = Array.from(document.querySelectorAll('input[name="temp_column"]')).map(i => i.value);
+    const rows = [];
+    document.querySelectorAll('#temp-log tbody tr').forEach((tr, r) => {
+      const time = tr.querySelector('input[name="temp_row_time"]').value;
+      const vals = Array.from(tr.querySelectorAll('input[type="number"]')).map(i=>parseFloat(i.value)||null);
+      rows.push({ time, values: vals });
+    });
+
+    fetch('{{ url_for("daily.autosave") }}', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        date, notes, data: { checklist, temperature_log: { columns, rows } }
+      })
+    });
+  }, 300);  // debounce
+}
+
+// Reindex inputs after structural changes
+function reindex() {
+  document.querySelectorAll('#temp-log tbody tr').forEach((row, r) => {
+    row.querySelectorAll('input[type="number"]').forEach((inp, c) => {
+      inp.name = `temp_cell_${r}_${c}`;
+    });
+  });
+  autosave();
+}
+
+/** Dynamic table ops **/
+function addTempColumn() {
+  const table = document.querySelector('#temp-log table');
+  const colCount = table.querySelectorAll('thead input[name="temp_column"]').length;
+
+  const th = document.createElement('th');
+  th.innerHTML = `
+    <div class="d-flex align-items-center">
+      <input type="text" name="temp_column" class="form-control me-2" placeholder="New Col">
+      <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteColumn(this)">🗑</button>
+    </div>`;
+
+  // Insert before the "+ Col" button column
+  const addBtnCell = document.querySelector('#add-col-btn-cell');
+  addBtnCell.before(th);
+
+  // Add blank cells to existing rows
+  table.querySelectorAll('tbody tr').forEach((row, i) => {
+    const td = document.createElement('td');
+    td.innerHTML = `<input type="number" step="0.1" name="temp_cell_${i}_${colCount}" class="form-control" />`;
+    row.insertBefore(td, row.lastElementChild);
+  });
+
+  reindex();
+}
+
+function addTempRow() {
+  const table = document.querySelector('#temp-log table');
+  const colCount = table.querySelectorAll('thead input[name="temp_column"]').length;
+  const rowCount = table.querySelectorAll('tbody tr').length;
+  const tr = document.createElement('tr');
+  let html = `<td><input type="text" name="temp_row_time" class="form-control" placeholder="Time"></td>`;
+  for(let c=0; c<colCount; c++){
+    html += `<td><input type="number" step="0.1" name="temp_cell_${rowCount}_${c}" class="form-control" /></td>`;
+  }
+  html += `<td><button type="button" class="btn btn-sm btn-danger" onclick="deleteRow(this)">−</button></td>`;
+  tr.innerHTML = html;
+  table.querySelector('tbody').appendChild(tr);
+  reindex();
+}
+
+function deleteRow(btn) {
+  btn.closest('tr').remove();
+  reindex();
+}
+
+function deleteColumn(btn) {
+  const th  = btn.closest('th');
+  const idx = [...th.parentNode.children].indexOf(th);
+  document.querySelectorAll('#temp-log table tr').forEach(tr => {
+    tr.removeChild(tr.children[idx]);
+  });
+  reindex();
+}
+
+/** Attach autosave to inputs **/
+document.querySelectorAll('input, textarea').forEach(el => {
+  el.addEventListener(el.type === 'checkbox' ? 'change' : 'input', autosave);
+});
+</script>
+{% endblock %}

@@ -1,0 +1,26 @@
+<!-- app\templates\quantities\index.html -->
+
+{% extends 'base.html' %}
+{% from 'components/searchbar.html' import searchbar %}
+{% from 'components/crud_table.html' import crud_table %}
+
+{% block content %}
+  <h1 class="mb-4">Quantities</h1>
+
+  {{ searchbar(
+      url_for('api.search_resource', resource='quantities'),
+      ['name','base_unit','base_amt','note'],
+      target_table_id='table-quantities',
+      columns=['name','base_unit','base_amt','note'],
+      id='quantities-search',
+      placeholder='Filter quantities…'
+  ) }}
+
+  {{ crud_table(
+    'quantities',
+    url_for('api.save_resource', resource='quantities'),
+    ['name','base_unit','base_amt','note'],
+    []
+  ) }}
+
+{% endblock %}

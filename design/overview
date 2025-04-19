@@ -1,0 +1,113 @@
+An overview of the simple web flask app I want to make.
+I don't want it to be too complicated - keeping the code very readable would be preferred
+Keeping files seperate when possible and organised neatly - to ensure that files don't end up being very long.
+Wherever possible - prefer to create functions or methods that can be reused.
+
+We want this to work with sql on my godaddy shared console as it was before. Please review the codebase to understand the context - but PLEASE, since we are refactoring, don't just completely copy the original website. I would like to start again from the ground up and keep it simple since that original code got way too complex and out of hand. It wasn't readable or clean and I had no way to truly design it anymore.
+Mainly use C:\Projects\dbtrack\design\claudes-overview.txt as a reference for what we're trying to make - preferring this document overview first.
+
+When you're editing files, make sure to keep a high level human readable and not repetitive document actively updated to keep our discussion on how everything should work in natural language. Consider it an abstract map of the codebase. It will be accessible in C:\Projects\dbtrack\design\codebase.txt\
+
+The old codebase is in  C:\Projects\dbtrack\oldcodebase
+our new one is in C:\Projects\dbtrack\refactor
+
+The more you can rely on other libraries to simplifiy our code, the better!
+
+If I mention a tag like system, I mean an array which we can either search first to autocomplete, and if it doesnt exist and the field allows it, we can create a new tag of that type.
+
+Lets work on functions slowly, implementing in the following order to make sure it works nicely:
+
+writing the database connection code
+with crud api and any other useful api access code.
+
+quantity table / page. including all api for getting quantities etc
+
+utilities for searching databases and more
+
+We're creating 6 core functions of the site that in themselves have a whole lot within themselves - but also relate.
+
+index.html
+This is literally buttons to all other parts of the website to access the other functions
+
+global style
+generally clean and responsive. Prioritising design for a mobile device and be very neat looking.
+
+1. A daily logger
+A more standalone part of the website.
+This page references a specific date - which is a row entry in a database.
+It has a date picker to let you access a specific date, arrows left and right to go to the next or last day in that picker.
+The days themselves have and store:
+a temperature log table (person who checked, temperatures for whatever devices checked, time, a plus button to add a new entry, delete button too
+A cleaning log table (note, person who cleaned, time) a plus button to add a new entry
+notes about day
+
+2. Purchase tracker
+This is similar to a few of the other pages which essentially will be CRUD for the databases they represent with additional abilities and frills.
+This purchase tracker (if possible) could use pytesseract ocr.
+But the main purpose is to have a quick entry field for a single SHOP. This data of the shop will be a the shop name, time/date, list of the ingredients, the quantity of each of those ingredients, the quantity of unit for each ingredient, the unit reference for each ingredient and the cost of each. maybe any discounts etc too, the main thing that is required is the quantity, ingredient/item name and the cost.
+It will be great for it to check the ingredient database and if it doesn't match (with some leeway) to an existing ingredient from the database for it to add it properly formatted etc.
+Any other helpful features would be appreciated but this is the main purpose - and ocr is 100% not required in a first draft.
+
+3. Quantity conversions
+This doesn't really have to be a front-end part of the website. It had been previously, but essentially was a table that allowed for entry of all required units of measurement. 
+ml, liters, l 
+g grams, kg, ounces, pounds 
+fl oz, 
+tbsp, tsp, cup
+minutes 
+units, dozens 
+etc.etc.
+All of thosse kinds of things. And preferably we would also begin to implement the ability to 'calibrate' too. so volume matched to weight - 1 cup of flour is xxx grams etc. This isn't really required though
+The main part is using reference units for all, all mass converts to grams, all volume to ml, all time to minutes and all quantities to units. 
+This is basically a crud database for this. 
+Tracking "Unit","Reference Unit","Reference Unit Quantity"
+
+4. Ingredients reference
+This is a database that will store all ingredients and their data for reference in recipes.
+It stores their name, their dietary mentions, their allergies, their cost, their purchase quantity, their purchase size, the calculated reference cost (their cost divided by their purchase size in base reference unit (i.e 2GBP / 1kg )), their source, tags array, any other notes
+
+5. Recipes
+This is the most important part and is where the front end needs to be very user friendly and easy to use / clear.
+Best to maybe have two pages, one for creating new recipes
+and one for viewing all recipes
+
+Creating a recipe will offer the title of the recipe
+the inspiration url (with ability to click plus to add multiple urls, these also have a clean name we can enter next to the url)
+A short description (if wanted)
+and then we see an ingredients list - We don't enter anything into the ingredients list.
+Instead, all our input (besides the other metadata above)
+is done here:
+We have a step editor. It allows for nested steps using sortable js. If a step has anything nested in it, then it is just a section name - and so will only offer a textbox to store its section name. Sections can exist in sections and follow markdown style headings, getting smaller each time.
+Sections are collapsible too.
+At the end of all this, recipes will be displayed neatly. We need to be keeping track in a neat database model all of this data. You can maybe store it as a json
+If it is a step it will keep track of the following:
+The step description
+If wanted, the step ingredients, these ingredients will search through our ingredient and recipe database combined. If we select an ingredient, we also have fields for the quantity and unit we want to use. If we select a recipe then it will become a nested kind of step within this recipe. It will hold all its ingredient data etc for later steps that I will explain, but basically it will be highlighted seperately. The recipe becomes nested in a coloured section with its recipe name.
+Each step we can optionally add estimated time
+Each section we can also add estimated time - both of these we can type with a tag like system.
+
+The total estimated time can then be calculated and displayed, along with a breakdown of each tag for it i.e. prep, cooking, cleaning
+
+As we add ingredients to steps, they will get added also to the recipe ingredient list. Keeping ingredients seperated to sections is important - we list the ingredient, its total amount, then neatly we show the sections it is used in and the amount in each section next to it.
+
+This way at the end of the recipe we have all ingredients listed that were used in all steps - this would also include any nested recipes too!
+
+The key though with nested recipes is that they should be dynamic and get data from that recipe, so if we update that recipe it should change this recipes version of it too.
+
+Once we've created this recipe, we can save it - which i also hope we are autosaving throughout this process to ensure we don't lose data. We need to be sure all of what we just entered is saved properly.
+
+If we are then browsing through recipes we can open them up and they are neatly display: additionally they allow the following behaviour:
+
+If we click edit, we are able to then edit the recipe, though instead of fully overwriting data - we compare changes the same way git does and store this as a kind of running branch - we can offer notes per each 'commit' of the new recipe and when we view it we can click through a timeline of the changes to see what was different and the note for it.
+
+There is also on each recipe a "Bake" button which allows for the next bit:
+
+6. Baking Log
+Once we are baking a recipe, it opens up the recipe for neat display: but additionally on the same page we have our baking log.
+We are going to need to store all the data about that bake for health and safety. So we have a the batch code(which we could find a good way to autogenerate an easy one based on date or something sensible), a notes section but more importantly, we have the ability to enter the scale we are going to bake at (which will adjust the recipe correclty) and then when we complete the bake to mark the types of servings, the reference unit of each serving and the quantity of servings.
+
+This will then be stored in that recipe as a commit from the last bake - to keep accurate serving estimates. If this isn't changed that's fine we wouldn't store it as per git commit - but we would store it and all the other data within a baking log database.
+
+We also need a crud viewing for the database of the baking log - something nice and neat that lets us view each baking batch.
+
+If you can think of anything else for the moment let me know - lets now work in the codebase.md file on a higher level together. Thank you for your help I look forward to seeing this made!

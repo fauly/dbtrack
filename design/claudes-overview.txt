@@ -1,0 +1,316 @@
+# Dirty Boots Dashboard - System Overview
+
+## Overall Architecture
+The system is implemented as a Flask-based web application with a SQLite database, structured as:
+- Backend: Python/Flask REST API
+- Frontend: Vanilla JavaScript (Some libraries) with HTML templates
+- Database: SQLite with SQLAlchemy ORM
+- Migration System: Alembic
+
+## Core Modules
+
+### 1. Daily Reports Module
+- Purpose: Track and manage daily café operations
+- Key Features:
+  * Cleaning schedule tracking
+  * Temperature monitoring
+  * Waste tracking
+  * Customer feedback collection
+  * Equipment issue reporting
+  * Daily operations logging
+
+### 2. Ingredients Management
+- Purpose: Manage ingredient inventory and properties
+- Key Features:
+  * Ingredient database with costs
+  * Allergen tracking
+  * Dietary information
+  * Stock level monitoring
+  * Unit measurement
+  * Supplier information and lead times
+
+### 3. Quantity Conversion System
+- Purpose: Handle unit conversions and measurements
+- Key Features:
+  * Unit conversion calculations
+  * Reference unit system
+  * Mass/Volume/Count conversions
+  * Dynamic conversion calculator
+  * Conversion history tracking
+
+### 4. Recipe Management
+- Purpose: Manage and organize recipes
+- Key Features:
+  * Hierarchical recipe structure
+  * Step-by-step instructions
+  * Ingredient quantities
+  * Nested recipe references
+  * Serving size calculations
+  * Preparation and cooking times
+  * Tag-based organization
+
+## Data Models
+
+### 1. DailyLog
+- Properties:
+  * id: Integer (Primary Key)
+  * date: Date
+  * last_edited: DateTime
+  * temperatures: JSON {location: {time: temp}}
+  * cleaning_tasks: JSON {
+      opening_clean: DateTime,
+      midday_clean: DateTime,
+      end_of_day_clean: DateTime,
+      grey_water: DateTime,
+      bin_emptied: DateTime
+    }
+  * stock_used: JSON
+  * food_waste: Integer
+  * customer_feedback: Text
+  * equipment_issues: Text
+  * additional_notes: Text
+  * staff_notes: Text
+
+### 2. Ingredients
+- Properties:
+  * id: Integer (Primary Key)
+  * name: String (unique)
+  * allergens: String (comma-separated)
+  * dietary_mentions: String (comma-separated)
+  * source: String
+  * lead_time: String
+  * quantity: Float
+  * unit: String
+  * cost: Float
+  * min_stock_level: Float
+  * max_stock_level: Float
+  * preferred_supplier: Integer (FK to Supplier)
+  * storage_location: String
+  * storage_requirements: String
+  * shelf_life_days: Integer
+  * nutritional_info: JSON
+
+### 3. QuantityConversion
+- Properties:
+  * id: Integer (Primary Key)
+  * unit_name: String (unique)
+  * reference_unit_name: String
+  * reference_unit_amount: Float
+  * unit_type: String (mass/volume/time/count)
+  * conversion_factor: Float
+  * is_standard: Boolean
+  * notes: Text
+
+### 4. Recipe
+- Properties:
+  * id: Integer (Primary Key)
+  * name: String (unique)
+  * version: Integer
+  * active: Boolean
+  * servings_type: String
+  * servings_count: Integer
+  * ingredients: JSON [
+      {
+        ingredient_id: Integer,
+        quantity: Float,
+        unit: String,
+        notes: String,
+        is_optional: Boolean
+      }
+    ]
+  * referenced_recipes: JSON [
+      {
+        recipe_id: Integer,
+        quantity: Float,
+        notes: String
+      }
+    ]
+  * steps: JSON [
+      {
+        order: Integer,
+        title: String,
+        description: Text,
+        time_estimate: Integer,
+        temperature: String,
+        equipment: String[],
+        step_ingredients: [
+          {
+            ingredient_id: Integer,
+            quantity: Float,
+            unit: String
+          }
+        ]
+      }
+    ]
+  * tags: Many-to-Many with Tags
+  * notes: Text
+  * prep_time: String
+  * cook_time: String
+  * total_time: String
+  * difficulty: String
+  * equipment_needed: JSON
+  * storage_instructions: Text
+  * created_at: DateTime
+  * updated_at: DateTime
+
+### 5. RecipeVersion (New)
+- Properties:
+  * id: Integer (Primary Key)
+  * recipe_id: Integer (FK to Recipe)
+  * version_number: Integer
+  * changes: JSON [
+      {
+        field: String,
+        old_value: Any,
+        new_value: Any,
+        reason: Text
+      }
+    ]
+  * author: String
+  * timestamp: DateTime
+  * notes: Text
+  * success_rating: Float
+  * batch_results: JSON [
+      {
+        date: DateTime,
+        yield: Float,
+        quality_rating: Integer,
+        notes: Text
+      }
+    ]
+
+### 6. BatchLog (New)
+- Properties:
+  * id: Integer (Primary Key)
+  * recipe_id: Integer (FK to Recipe)
+  * recipe_version: Integer
+  * date: DateTime
+  * staff_member: String
+  * yield_amount: Float
+  * yield_unit: String
+  * quality_rating: Integer
+  * issues: JSON [
+      {
+        type: String,
+        description: Text,
+        severity: Integer
+      }
+    ]
+  * environment: JSON {
+      temperature: Float,
+      humidity: Float,
+      weather: String
+    }
+  * notes: Text
+  * photos: JSON [
+      {
+        filename: String,
+        timestamp: DateTime,
+        description: Text
+      }
+    ]
+  * ingredient_variations: JSON [
+      {
+        ingredient_id: Integer,
+        actual_amount: Float,
+        expected_amount: Float,
+        reason: Text
+      }
+    ]
+
+### 7. Purchase (New)
+- Properties:
+  * id: Integer (Primary Key)
+  * date: DateTime
+  * supplier_id: Integer (FK to Supplier)
+  * items: JSON [
+      {
+        ingredient_id: Integer,
+        quantity: Float,
+        unit: String,
+        cost: Float,
+        batch_number: String
+      }
+    ]
+  * invoice_number: String
+  * total_cost: Float
+  * payment_status: String
+  * payment_date: DateTime
+  * receipt_image: String
+  * notes: Text
+
+### 8. Supplier (New)
+- Properties:
+  * id: Integer (Primary Key)
+  * name: String
+  * contact_person: String
+  * email: String
+  * phone: String
+  * address: Text
+  * payment_terms: String
+  * lead_time_days: Integer
+  * active: Boolean
+  * ingredients_supplied: JSON [
+      {
+        ingredient_id: Integer,
+        typical_cost: Float,
+        minimum_order: Float,
+        unit: String
+      }
+    ]
+  * reliability_rating: Float
+  * notes: Text
+
+## UI/UX Patterns
+
+### 1. Common Interface Elements
+- Search functionality with auto suggestion/completion - allows for searching of fields of data from tables. Maybe this has custom filter functions or something - should ideally be a reusable class for js/html
+- Filter systems
+- Modal forms
+- Table-based data display
+- Editable fields
+- Notification system
+
+### 2. Interactive Features
+- Drag-and-drop recipe organization
+- Real-time unit conversion
+- Auto-complete suggestions
+- Dynamic form validation
+- Inline editing
+
+## Implementation Patterns
+
+### 1. Frontend Architecture
+- Module-based JavaScript files
+- DOM-loaded initialization
+- Event delegation
+- Fetch API for AJAX calls
+- Template-based rendering
+
+### 2. Backend Structure
+- Blueprint-based routing
+- RESTful API endpoints
+- SQLAlchemy models
+- Error handling middleware
+- Database migrations
+
+### 3. Data Flow
+- REST API communication
+- JSON data exchange
+- Client-side state management
+- Server-side validation
+- Database transactions
+
+## Integration Points
+
+### 1. External Systems
+- Unit conversion reference data
+- Ingredient database
+- Recipe cross-references
+- Stock management
+
+### 2. Internal Connections
+- Recipe-Ingredient relationships
+- Conversion-Unit associations
+- Tag-Recipe linkages
+- Daily log references

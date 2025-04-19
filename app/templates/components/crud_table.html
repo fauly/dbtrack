@@ -1,0 +1,139 @@
+{# Macro: crud_table(resource, api_endpoint, columns, rows) #}
+{% macro crud_table(resource, api_endpoint, columns, rows) %}
+<link rel="stylesheet" href="/static/css/crud_table.css">
+
+<div
+  id="crud-{{resource}}"
+  data-endpoint="{{ api_endpoint }}"
+  data-columns='{{ columns|tojson }}'
+>
+  <table class="table table-bordered" id="table-{{resource}}">
+    <thead>
+      <tr>
+        {% for col in columns %}
+          <th>{{ col|capitalize }}</th>
+        {% endfor %}
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in rows %}
+      <tr data-id="{{ row.id }}">
+        {% for col in columns %}
+        <td>
+          <input 
+            type="text" 
+            class="form-control" 
+            name="{{col}}" 
+            value="{{ row[col] }}"
+          />
+        </td>
+        {% endfor %}
+        <td>
+          <button type="button" class="btn btn-sm btn-danger" onclick="deleteRow(this, '{{resource}}')">🗑</button>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <button type="button" class="btn btn-sm btn-outline-primary" onclick="addRow('{{resource}}')">
+    <span class="icon">+</span>
+    <span>Add Row</span>
+  </button>
+
+  {# Toast for Save feedback #}
+  <div class="toast-container position-fixed bottom-0 end-0 p-3">
+    <div id="toast-{{resource}}" class="toast" role="alert" data-bs-delay="1000">
+      <div class="toast-body">Changes saved successfully!</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Helpers
+function showToast(resource) {
+  const toastEl = document.getElementById(`toast-${resource}`);
+  if (toastEl) new bootstrap.Toast(toastEl).show();
+}
+
+function getRowData(tr, columns) {
+  const data = {};
+  columns.forEach(col => {
+    data[col] = tr.querySelector(`[name="${col}"]`).value;
+  });
+  return data;
+}
+
+// Autosave on change
+document.addEventListener('input', e => {
+  const input = e.target;
+  const tr = input.closest('tr');
+  if (!tr) return;
+  const container = input.closest('[data-endpoint]');
+  if (!container) return;
+  const resource = container.id.replace('crud-','');
+  const endpoint = container.dataset.endpoint;
+  const columns = JSON.parse(container.dataset.columns);
+  const id = tr.dataset.id;  // may be "None" for new rows
+
+  // Add loading state
+  tr.classList.add('loading');
+  
+  const payload = { id, data: getRowData(tr, columns) };
+  // POST create or update
+  fetch(endpoint, {
+    method: 'POST',
+    headers: { 'Content-Type':'application/json' },
+    body: JSON.stringify(payload)
+  })
+    .then(r => r.json())
+    .then(res => {
+      if (res.id) tr.dataset.id = res.id;
+      tr.classList.remove('loading');
+      tr.classList.add('saving');
+      showToast(resource);
+      // Remove highlight animation class after it completes
+      setTimeout(() => tr.classList.remove('saving'), 1000);
+    });
+});
+
+// Add Row
+function addRow(resource) {
+  const container = document.getElementById(`crud-${resource}`);
+  const endpoint  = container.dataset.endpoint;
+  const columns   = JSON.parse(container.dataset.columns);
+  const tbody     = container.querySelector('tbody');
+  const tr        = document.createElement('tr');
+  tr.innerHTML = columns.map(col=>`
+    <td><input type="text" name="${col}" class="form-control" value=""></td>
+  `).join('') + `
+    <td><button type="button" class="btn btn-sm btn-danger" onclick="deleteRow(this,'${resource}')">🗑</button></td>
+  `;
+  tr.dataset.id = '';
+  tbody.appendChild(tr);
+  // Focus the first input of the new row
+  tr.querySelector('input').focus();
+}
+
+// Delete Row
+function deleteRow(btn, resource) {
+  const tr = btn.closest('tr');
+  const id = tr.dataset.id;
+  const container = document.getElementById(`crud-${resource}`);
+  const deleteUrl = `${container.dataset.endpoint}/${id}`;
+  
+  // Add delete animation
+  tr.classList.add('deleting');
+  
+  if (id) {
+    fetch(deleteUrl, { method: 'DELETE' })
+      .then(_ => {
+        // Wait for animation to complete before removing
+        setTimeout(() => tr.remove(), 300);
+      });
+  } else {
+    setTimeout(() => tr.remove(), 300);
+  }
+}
+</script>
+{% endmacro %}

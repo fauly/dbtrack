@@ -1,0 +1,132 @@
+[id$="-wrapper"] {
+  position: relative;
+}
+
+[id$="-input"]:empty:before {
+  content: attr(data-placeholder);
+  color: #888;
+  pointer-events: none;
+  position: absolute;
+  left: .75rem;
+  top: .4rem;
+}
+
+[id$="-input"] {
+  min-height: 2rem;
+  padding: .25rem .75rem;
+  cursor: text;
+}
+
+/* Token pills */
+span.token {
+  display: inline-flex;
+  align-items: center;
+  background: #e0f3ff;
+  border: 1px solid #a0d4ff;
+  border-radius: 4px;
+  padding: 2px 4px;
+  margin: 0 2px;
+  font-family: monospace;
+  cursor: default;
+  min-height: 2rem;
+  min-width: 60px;
+  user-select: none;
+  white-space: nowrap;
+  pointer-events: none;  /* Prevent any interaction with the token container */
+}
+
+span.token.building {
+  opacity: .8;
+  background: #d9eefb;
+  border-color: #80c1f7;
+  pointer-events: all;  /* Allow interaction when building */
+  user-select: text;  /* Allow text selection when building */
+  cursor: text;
+}
+
+span.token code {
+  font-weight: bold;
+  color: #0066cc;
+  margin-right: 4px;
+  user-select: none;
+  pointer-events: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+span.token .arg {
+  border-left: 1px dashed #888;
+  margin: 0 4px;
+  padding: 2px 6px;
+  font-weight: bold;
+  border-radius: 2px;
+  min-width: 60px;
+  display: inline-block;
+  cursor: default;
+  user-select: none;
+  pointer-events: none;
+  white-space: nowrap;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+span.token .arg.editing {
+  background: #fff5e6 !important; /* Only override background when editing */
+  border: 1px solid #80c1f7;
+  border-radius: 3px;
+  cursor: text;
+  min-width: 60px;
+  outline: none;
+  user-select: text;
+  pointer-events: all;
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+}
+
+/* Only show placeholder when the content is empty */
+span.token .arg:empty:before {
+  content: attr(data-placeholder);
+  color: #888;
+  font-style: italic;
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+/* Hide placeholder when there's actual content */
+span.token .arg:not(:empty):before {
+  display: none;
+}
+
+/* Suggestions */
+.list-group {
+  max-height: 150px;
+  overflow-y: auto;
+  width: 100%;
+  border-radius: 4px;
+  border: 1px solid #80c1f7;
+}
+
+.list-group-item {
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+}
+
+.list-group-item.disabled {
+  pointer-events: none;
+  background: #f8f9fa;
+  font-weight: bold;
+}
+
+.list-group-item-action:hover,
+.list-group-item-action.active {
+  background-color: #e9f5ff !important;
+  color: #000 !important;
+  border-color: #80c1f7 !important;
+}
+
+.shadow-sm {
+  box-shadow: 0 .4rem 1rem rgba(0, 0, 0, .1) !important;
+}
