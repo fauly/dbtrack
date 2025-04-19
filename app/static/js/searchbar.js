@@ -478,8 +478,12 @@ export function setupSearchbar(id) {
     const def = FILTER_DEFS[current.type];
     const arg = def.args[current.stage];
     const building = inputDiv.querySelector('span.token.building');
-
-    if (!building.querySelector('.arg.editing')) {
+  
+    let editingArg = building.querySelector('.arg.editing');
+  
+    // If we're just moving to the next stage and editingArg doesn't exist yet
+    if (!editingArg) {
+      // Build HTML from scratch
       let html = `<code>${current.type}</code>`;
       def.args.forEach((argDef, i) => {
         const isEditing = i === current.stage;
@@ -492,36 +496,43 @@ export function setupSearchbar(id) {
                   contenteditable="${isEditing}">${value}</span>`;
       });
       building.innerHTML = html;
-      const editingArg = building.querySelector('.arg.editing');
+      editingArg = building.querySelector('.arg.editing');
       if (editingArg) {
         placeCaretInside(editingArg);
         activeArg = editingArg;
       }
     }
-
-    // Contextual suggestion logic
-    if (arg.name === 'operator') {
-      const suggestions = ['equal', 'not_equal', 'greater_than', 'greater_than_or_equal','less_than', 'less_than_or_equal', 'contains']
-        .filter(op => !inputValue || op.includes(inputValue));
-      showSuggestions(suggestions);
-    } else if (['value', 'min', 'max'].includes(arg.name)) {
-      const columnName = current.args[0];
-      let suggestions = [...new Set(
-        currentVisibleData
-          .map(row => String(row[columnName]))
-          .filter(val => val && (!inputValue || val.toLowerCase().includes(inputValue.toLowerCase())))
-      )].sort();
-
-      if (inputValue && !suggestions.includes(inputValue)) {
-        suggestions.unshift(inputValue);
+  
+    // If user is actively typing in the argument
+    if (editingArg) {
+      const currentInput = inputValue || editingArg.textContent.trim();
+  
+      if (arg.name === 'operator') {
+        const suggestions = [
+          'equal', 'not_equal', 'greater_than', 'greater_than_or_equal',
+          'less_than', 'less_than_or_equal', 'contains'
+        ].filter(op => !currentInput || op.includes(currentInput));
+        showSuggestions(suggestions);
+      } else if (['value', 'min', 'max'].includes(arg.name)) {
+        const columnName = current.args[0];
+        const suggestions = [...new Set(
+          currentVisibleData
+            .map(row => String(row[columnName]))
+            .filter(val => val && (!currentInput || val.toLowerCase().includes(currentInput.toLowerCase())))
+        )].sort();
+  
+        if (currentInput && !suggestions.includes(currentInput)) {
+          suggestions.unshift(currentInput);
+        }
+        showSuggestions(suggestions);
+      } else {
+        const suggestions = arg.source(current)
+          .filter(s => !currentInput || s.toLowerCase().includes(currentInput.toLowerCase()));
+        showSuggestions(suggestions);
       }
-      showSuggestions(suggestions);
-    } else {
-      const suggestions = arg.source(current)
-        .filter(s => !inputValue || s.toLowerCase().includes(inputValue.toLowerCase()));
-      showSuggestions(suggestions);
     }
   }
+  
 
   /** Finalize token as complete + lock it */
   function finalizeToken() {
