@@ -1,17 +1,19 @@
-{# Macro: crud_table(resource, api_endpoint, columns, rows) #}
-{% macro crud_table(resource, api_endpoint, columns, rows) %}
+{# app/templates/components/crud_table.html #}
+{% macro crud_table(resource, api_endpoint, columns, rows, field_meta={}) %}
 <link rel="stylesheet" href="/static/css/crud_table.css">
 
 <div
   id="crud-{{resource}}"
+  class="crud-container"
   data-endpoint="{{ api_endpoint }}"
   data-columns='{{ columns|tojson }}'
+  data-meta='{{ field_meta|tojson }}'
 >
   <table class="table table-bordered" id="table-{{resource}}">
     <thead>
       <tr>
         {% for col in columns %}
-          <th>{{ col|capitalize }}</th>
+          <th>{{ field_meta.get(col, {}).get('label', col|capitalize) }}</th>
         {% endfor %}
         <th>Actions</th>
       </tr>
@@ -20,28 +22,66 @@
       {% for row in rows %}
       <tr data-id="{{ row.id }}">
         {% for col in columns %}
-        <td>
-          <input 
-            type="text" 
-            class="form-control" 
-            name="{{col}}" 
-            value="{{ row[col] }}"
-          />
-        </td>
+          {% set m = field_meta.get(col, {}) %}
+          <td>
+            {% if m.type == 'select' %}
+              {% if m.readonly %}
+                <span class="form-control-plaintext" data-field="{{col}}">{{ row[col] }}</span>
+              {% else %}
+                <select name="{{col}}" class="form-select">
+                  <option value="{{ row[col] }}">{{ row[col] }}</option>
+                </select>
+              {% endif %}
+            {% elif m.type == 'json' %}
+              <div class="d-flex align-items-start json-container">
+                {% if m.readonly %}
+                  <span class="form-control-plaintext" data-field="{{col}}">{{ row[col] | tojson }}</span>
+                {% else %}
+                  <div class="json-preview" data-field="{{col}}" data-json='{{ row[col] | tojson }}'>
+                    <!-- JSON preview will be rendered here by JavaScript -->
+                  </div>
+                  <textarea name="{{col}}" class="form-control json-field d-none">{{ row[col] | tojson }}</textarea>
+                  <button 
+                    type="button"
+                    class="btn btn-sm btn-outline-secondary ms-2 json-edit-btn"
+                    data-col="{{col}}"
+                    title="Edit JSON in modal"
+                  >✎</button>
+                {% endif %}
+              </div>
+            {% else %}
+              {% if m.readonly %}
+                <span class="form-control-plaintext" data-field="{{col}}">{{ row[col] }}</span>
+              {% else %}
+                <input 
+                  type="{{ m.type or 'text' }}" 
+                  name="{{col}}" 
+                  class="form-control" 
+                  value="{{ row[col] }}"
+                  {% if m.required %}required{% endif %}
+                />
+              {% endif %}
+            {% endif %}
+          </td>
         {% endfor %}
         <td>
-          <button type="button" class="btn btn-sm btn-danger" onclick="deleteRow(this, '{{resource}}')">🗑</button>
+          <button 
+            type="button" 
+            class="btn btn-sm btn-danger" 
+            onclick="deleteRow(this,'{{resource}}')"
+          >🗑</button>
         </td>
       </tr>
       {% endfor %}
     </tbody>
   </table>
-  <button type="button" class="btn btn-sm btn-outline-primary" onclick="addRow('{{resource}}')">
-    <span class="icon">+</span>
-    <span>Add Row</span>
-  </button>
 
-  {# Toast for Save feedback #}
+  <button 
+    type="button" 
+    class="btn btn-sm btn-outline-primary" 
+    onclick="addRow('{{resource}}')"
+  ><span class="icon">+</span> Add Row</button>
+
   <div class="toast-container position-fixed bottom-0 end-0 p-3">
     <div id="toast-{{resource}}" class="toast" role="alert" data-bs-delay="1000">
       <div class="toast-body">Changes saved successfully!</div>
@@ -49,91 +89,48 @@
   </div>
 </div>
 
-<script>
-// Helpers
-function showToast(resource) {
-  const toastEl = document.getElementById(`toast-${resource}`);
-  if (toastEl) new bootstrap.Toast(toastEl).show();
-}
+{# JSON editor modal #}
+<div 
+  class="modal fade" 
+  id="{{resource}}-json-editor-modal" 
+  tabindex="-1" 
+  aria-labelledby="{{resource}}-json-editor-label" 
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="{{resource}}-json-editor-label">
+          Edit <span id="{{resource}}-json-editor-col"></span>
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <table class="table" id="{{resource}}-json-editor-table">
+          <thead>
+            <tr><th>Key</th><th>Value</th><th>Actions</th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+        <button type="button" class="btn btn-sm btn-secondary" id="{{resource}}-json-editor-add">
+          + Add field
+        </button>
+      </div>
+      <div class="modal-footer">
+        <button 
+          type="button" 
+          class="btn btn-secondary" 
+          data-bs-dismiss="modal"
+        >Cancel</button>
+        <button 
+          type="button" 
+          class="btn btn-primary" 
+          id="{{resource}}-json-editor-save"
+        >Save</button>
+      </div>
+    </div>
+  </div>
+</div>
 
-function getRowData(tr, columns) {
-  const data = {};
-  columns.forEach(col => {
-    data[col] = tr.querySelector(`[name="${col}"]`).value;
-  });
-  return data;
-}
-
-// Autosave on change
-document.addEventListener('input', e => {
-  const input = e.target;
-  const tr = input.closest('tr');
-  if (!tr) return;
-  const container = input.closest('[data-endpoint]');
-  if (!container) return;
-  const resource = container.id.replace('crud-','');
-  const endpoint = container.dataset.endpoint;
-  const columns = JSON.parse(container.dataset.columns);
-  const id = tr.dataset.id;  // may be "None" for new rows
-
-  // Add loading state
-  tr.classList.add('loading');
-  
-  const payload = { id, data: getRowData(tr, columns) };
-  // POST create or update
-  fetch(endpoint, {
-    method: 'POST',
-    headers: { 'Content-Type':'application/json' },
-    body: JSON.stringify(payload)
-  })
-    .then(r => r.json())
-    .then(res => {
-      if (res.id) tr.dataset.id = res.id;
-      tr.classList.remove('loading');
-      tr.classList.add('saving');
-      showToast(resource);
-      // Remove highlight animation class after it completes
-      setTimeout(() => tr.classList.remove('saving'), 1000);
-    });
-});
-
-// Add Row
-function addRow(resource) {
-  const container = document.getElementById(`crud-${resource}`);
-  const endpoint  = container.dataset.endpoint;
-  const columns   = JSON.parse(container.dataset.columns);
-  const tbody     = container.querySelector('tbody');
-  const tr        = document.createElement('tr');
-  tr.innerHTML = columns.map(col=>`
-    <td><input type="text" name="${col}" class="form-control" value=""></td>
-  `).join('') + `
-    <td><button type="button" class="btn btn-sm btn-danger" onclick="deleteRow(this,'${resource}')">🗑</button></td>
-  `;
-  tr.dataset.id = '';
-  tbody.appendChild(tr);
-  // Focus the first input of the new row
-  tr.querySelector('input').focus();
-}
-
-// Delete Row
-function deleteRow(btn, resource) {
-  const tr = btn.closest('tr');
-  const id = tr.dataset.id;
-  const container = document.getElementById(`crud-${resource}`);
-  const deleteUrl = `${container.dataset.endpoint}/${id}`;
-  
-  // Add delete animation
-  tr.classList.add('deleting');
-  
-  if (id) {
-    fetch(deleteUrl, { method: 'DELETE' })
-      .then(_ => {
-        // Wait for animation to complete before removing
-        setTimeout(() => tr.remove(), 300);
-      });
-  } else {
-    setTimeout(() => tr.remove(), 300);
-  }
-}
-</script>
+<script type="module" src="{{ url_for('static', filename='js/crud_table.js') }}"></script>
 {% endmacro %}

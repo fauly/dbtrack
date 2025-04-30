@@ -1,4 +1,4 @@
-{% macro searchbar(endpoint_url, fields, target_table_id, columns, id='search', placeholder='Type to search…') %}
+{% macro searchbar(endpoint_url, fields, target_table_id, columns, id='search', placeholder='Type to search…',initial_query='') %}
 <div
   id="{{id}}-wrapper"
   class="position-relative mb-4"
@@ -13,7 +13,7 @@
     contenteditable="true"
     spellcheck="false"
     data-placeholder="{{ placeholder }}"
-  ></div>
+  >{{ initial_query }}</div>
   <ul
     id="{{id}}-suggestions"
     class="list-group position-absolute shadow-sm border"

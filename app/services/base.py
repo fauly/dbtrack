@@ -22,7 +22,8 @@ class BaseService:
 
     @classmethod
     def get_all(cls, order_by=None):
-        return get_all(cls.model, order_by=order_by)
+        """Get all records, optionally ordered"""
+        return cls.find(order_by=order_by)
 
     @classmethod
     def get_by_id(cls, record_id):

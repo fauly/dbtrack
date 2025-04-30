@@ -56,6 +56,28 @@
   box-shadow: 0 0 0 2px #63b3ed;
 }
 
+/* Readonly fields */
+.form-control-plaintext {
+  display: block;
+  width: 100%;
+  padding: 0.5rem;
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: #495057;
+  background-color: transparent;
+  border: 0;
+}
+
+/* Style for computed/readonly fields to look distinct */
+span[data-field="ref_unit_cost"] {
+  font-family: monospace;
+  color: #666;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  padding: 0.5rem;
+}
+
 /* Action buttons */
 .table .btn {
   transition: all 0.2s ease;
@@ -163,4 +185,64 @@
 
 .table tbody tr.loading .form-control {
   background: #edf2f7;
+}
+
+/* JSON field styling */
+.json-preview {
+  padding: 0.5rem;
+  border-radius: 4px;
+  background-color: #f8f9fa;
+  width: 100%;
+  min-height: 2.5rem;
+}
+
+.json-container {
+  position: relative;
+  width: 100%;
+}
+
+.json-preview-content {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.json-preview-content table {
+  margin: 0;
+}
+
+.json-preview-content .table-sm td {
+  padding: 0.25rem 0.5rem;
+  border-bottom: 1px solid #f1f1f1;
+}
+
+.json-preview-content .table-sm tr:last-child td {
+  border-bottom: none;
+}
+
+.json-preview::after {
+  content: "\270E"; /* Pencil symbol */
+  position: absolute;
+  right: 2.8rem;
+  top: 0.5rem;
+  color: #6c757d;
+  opacity: 0.5;
+  font-size: 0.8rem;
+}
+
+.json-preview:hover::after {
+  opacity: 1;
+}
+
+/* Make sure the JSON edit button is visible */
+.json-edit-btn {
+  position: absolute;
+  right: 0;
+  top: 0;
+  z-index: 2;
+}
+
+/* JSON editor modal styling */
+.modal .table {
+  margin-bottom: 1rem;
+  box-shadow: none;
 }

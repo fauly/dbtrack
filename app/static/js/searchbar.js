@@ -23,10 +23,7 @@ export function setupSearchbar(id) {
     condition: {
       args: [
         { name: 'column', source: () => fields },
-        { name: 'operator', source: () => [
-          'equal', 'not_equal', 'greater_than', 'greater_than_or_equal',
-          'less_than', 'less_than_or_equal', 'contains'
-        ]},
+        { name: 'operator', source: () => ['equal', 'not_equal', 'greater_than', 'greater_than_or_equal', 'less_than', 'less_than_or_equal', 'contains']},
         { name: 'value', source: () => [] }
       ]
     },
@@ -177,7 +174,7 @@ export function setupSearchbar(id) {
     const arg = def.args[current.stage];
   
     // Validate operator
-    if (arg.name === 'operator' && !['equal', 'not_equal', 'greater_than', 'greater_than_or_equal','less_than', 'less_than_or_equal', 'contains'].includes(val)) {
+    if (arg.name === 'operator' && !['equal', 'not_equal', 'greater_than', 'greater_than_or_equal', 'less_than', 'less_than_or_equal', 'contains'].includes(val)) {
       console.warn('Invalid operator:', val);
       return;
     }
@@ -348,20 +345,12 @@ export function setupSearchbar(id) {
   });
 
   /** Handle live typing to update tokens or trigger search */
-  inputDiv.addEventListener('input', () => {
+  inputDiv.addEventListener('input', (e) => {
+    const text = e.target.textContent.trim();
     const building = inputDiv.querySelector('span.token.building');
 
-    console.log('Input event:', {
-      building: !!building,
-      currentType: current?.type,
-      currentStage: current?.stage,
-      text: building?.textContent
-    });
-
-    if (!building && current) {
-      current = null;
-      activeArg = null;
-      hideSuggestions();
+    // Empty input or just free text
+    if (!building) {
       debounceSearch();
       return;
     }
@@ -385,8 +374,6 @@ export function setupSearchbar(id) {
           renderArgSuggestions(editingArg.textContent.trim());
         }
       }
-    } else {
-      debounceSearch();
     }
   });
   /** Debounced query execution */
@@ -396,8 +383,14 @@ export function setupSearchbar(id) {
   }
 
   function isQueryValid() {
+    // Empty queries are valid and should return all results
     const building = inputDiv.querySelector('span.token.building');
-    if (building) return false;
+    if (!building) return true;
+    
+    // Only invalidate if we have an incomplete token
+    if (current?.type && current.args.length < FILTER_DEFS[current.type].args.length) {
+      return false;
+    }
     return true;
   }
   
@@ -443,11 +436,10 @@ export function setupSearchbar(id) {
   /** Build search query string from tokens */
   function getRawQuery() {
     let out = '';
-
     inputDiv.childNodes.forEach(n => {
       if (n.nodeType === 3) {
-        const text = n.textContent.trim();
-        if (text) out += text;
+        // Preserve spaces between tokens for free text search
+        out += n.textContent;
       } else if (n.classList?.contains('token')) {
         if (n.dataset.blob) {
           out += `<${n.dataset.blob}>`;
@@ -462,9 +454,9 @@ export function setupSearchbar(id) {
         }
       }
     });
-
     return out.trim();
   }
+
   /** Render available filter types (e.g. condition, sort) */
   function renderTypeSuggestions(filter = '') {
     filter = filter.replace(/[<>]/g, '').trim();
@@ -507,10 +499,10 @@ export function setupSearchbar(id) {
     if (editingArg) {
       const currentInput = inputValue || editingArg.textContent.trim();
   
-      if (arg.name === 'operator') {
+      if (arg.name === 'operator' || (current.type === 'condition' && current.stage === 1)) {
         const suggestions = [
-          'equal', 'not_equal', 'greater_than', 'greater_than_or_equal',
-          'less_than', 'less_than_or_equal', 'contains'
+            'equal', 'not_equal', 'greater_than', 'greater_than_or_equal', 
+            'less_than', 'less_than_or_equal', 'contains'
         ].filter(op => !currentInput || op.includes(currentInput));
         showSuggestions(suggestions);
       } else if (['value', 'min', 'max'].includes(arg.name)) {
@@ -536,7 +528,19 @@ export function setupSearchbar(id) {
 
   /** Finalize token as complete + lock it */
   function finalizeToken() {
-    const blob = [current.type, ...current.args].join('__');
+    // Handle any operator conversions to match backend expectations
+    const args = [...current.args];
+    if (current.type === 'condition') {
+      // Convert the value to appropriate type based on actual column
+      const columnName = args[0];
+      const value = args[2];
+      const sampleValue = currentVisibleData.find(row => row[columnName] !== null)?.[columnName];
+      if (typeof sampleValue === 'number') {
+        args[2] = Number(value);
+      }
+    }
+    
+    const blob = [current.type, ...args].join('__');
     const span = inputDiv.querySelector('span.token.building');
     span.classList.remove('building');
     span.dataset.blob = blob;
@@ -574,7 +578,10 @@ export function setupSearchbar(id) {
       sel.addRange(range);
     }
   
-  // Run once ready
-  document.addEventListener('DOMContentLoaded', triggerSearch);
-  debugState();
+  // Run setup once DOM is ready
+  document.addEventListener('DOMContentLoaded', () => {
+    debugState();
+    // Initial query to load all data
+    triggerSearch();
+  });
 }

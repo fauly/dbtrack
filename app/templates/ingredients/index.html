@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% from 'components/searchbar.html' import searchbar %}
+{% from 'components/crud_table.html' import crud_table %}
+
+{% block content %}
+  <h1 class="mb-4">Ingredients</h1>
+
+  {{ searchbar(
+      url_for('api.search_resource', resource='ingredients'),
+      ['name','default_unit','store_quantity','store_unit','cost_per_purchase','ref_unit_cost','density','notes'],
+      target_table_id='table-ingredients',
+      columns=['name','default_unit','store_quantity','store_unit','cost_per_purchase','ref_unit_cost','density','notes'],
+      id='ingredients-search',
+      placeholder='Filter ingredients…'
+  ) }}
+
+ 
+
+  {{ crud_table(
+    'ingredients',
+    url_for('api.save_resource', resource='ingredients'),
+    ['name','default_unit','store_quantity','store_unit','cost_per_purchase','ref_unit_cost','density','notes'],
+    ingredients,
+    field_meta=Ingredient.__field_meta__
+  ) }}
+
+{% endblock %}

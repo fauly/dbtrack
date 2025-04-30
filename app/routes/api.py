@@ -5,6 +5,8 @@ from sqlalchemy import asc, desc
 from app.utils import parse_query_filters
 from app.services.quantities import QuantityService
 from app.models.quantity import Quantity
+from app.services.ingredients import IngredientService
+from app.models.ingredient import Ingredient
 from app.db import db, model_to_dict
 
 api_bp = Blueprint('api', __name__, url_prefix='/api')
@@ -12,7 +14,7 @@ api_bp = Blueprint('api', __name__, url_prefix='/api')
 # ─── Unified registry mapping resource → (ServiceClass, ModelClass) ─────────
 _service_map = {
     'quantities': (QuantityService, Quantity),
-    # 'ingredients': (IngredientService, Ingredient),
+    'ingredients': (IngredientService, Ingredient),
     # etc.
 }
 # ─────────────────────────────────────────────────────────────────────────────
@@ -46,7 +48,7 @@ def search_resource(resource):
     
     # Return all data if query is None or empty string
     if not q or not q.strip():
-        results = Service.get_all()
+        results = Service.get_all(order_by=Model.name)
     else:
         filters, order_by = parse_query_filters(Model, q)
         results = Service.find(filters=filters, order_by=order_by)
@@ -82,3 +84,25 @@ def delete_resource(resource, rid):
 
     Service.delete(rid)
     return jsonify({"status": "deleted"})
+
+@api_bp.route('/options/<resource>/<field>')
+def api_options(resource, field):
+    entry = _service_map.get(resource)
+    if not entry:
+        abort(404, f"No such resource '{resource}'")
+    _, Model = entry
+
+    if not hasattr(Model, field):
+        abort(400, f"Field '{field}' not found on model '{resource}'")
+
+    column = getattr(Model, field)
+    values = (
+      db.session.query(column)
+               .filter(column.isnot(None))
+               .distinct()
+               .limit(100)
+               .all()
+    )
+    # return a sorted, de‑duplicated list
+    return jsonify(sorted({v[0] for v in values}))
+
